@@ -1,0 +1,9 @@
+{
+    "apps": [
+    {
+    "name": "teache-admin",
+    "script": "npm",
+    "args": "start"
+    }
+    ]
+    }

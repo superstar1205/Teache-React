@@ -1,0 +1,136 @@
+/* Users, UserInfo */
+.side-menu-text {
+  font-size: 18px;
+}
+
+.t1 {
+  display: table-cell;
+}
+
+.t2 {
+  display: none;
+}
+
+.actionBtn {
+  margin-right: 3px !important;
+  background: #6460f2 !important;
+  color: #ffffff !important;
+  border: 1px solid #dde9ff !important;
+  border-radius: 5px !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+.actionBtn2 {
+  margin-right: 3px !important;
+  background: #dde9ff !important;
+  color: #807cd6 !important;
+  border: 1px solid #dde9ff !important;
+  border-radius: 5px !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+.searchbar {
+  margin-bottom: 15px;
+}
+
+@media only screen and (max-width: 1440px) {
+  .searchbar {
+    margin-bottom: 15px !important;
+  }
+  .t1 {
+    display: none;
+  }
+  .t2 {
+    display: table-cell;
+  }
+  table.teacher {
+    min-width: 1635px;
+  }
+  table td {
+    font-size: 14px;
+  }
+  .actionBtn {
+    margin-right: 3px !important;
+    background: #6460f2 !important;
+    color: #ffffff !important;
+    border: 1px solid #dde9ff !important;
+    border-radius: 5px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+@media only screen and (min-width: 2736px) {
+  table td,
+  table th {
+    font-size: 22.4px;
+    padding-top: 19px !important;
+    padding-bottom: 19px !important;
+  }
+  /* Acttion Btn */
+  .customAvatar {
+    width: 130px !important;
+    height: 130px !important;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+  .actionBtn {
+    margin-right: 5px !important;
+    background: #6460f2 !important;
+    color: #ffffff !important;
+    border: 1px solid #dde9ff !important;
+    border-radius: 5px !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+  .actionBtn2 {
+    margin-right: 5px !important;
+    background: #dde9ff !important;
+    color: #ffffff !important;
+    border: 1px solid #dde9ff !important;
+    border-radius: 5px !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+  .actionBtn img {
+    width: 22px;
+    height: 20px;
+  }
+  .actionBtn2 svg {
+    width: 24px;
+    height: 24px;
+  }
+  #btn_group {
+    width: 180px !important;
+  }
+  /* Searchbar */
+  .searchbar {
+    height: 60px !important;
+    margin-bottom: 20px;
+  }
+  .searchbar span {
+    width: 60px !important;
+  }
+  .searchbar input {
+    font-size: 21px;
+  }
+  .addClass {
+    height: 60px !important;
+    font-size: 21px;
+  }
+  .btn-group label {
+    font-size: 21px;
+  }
+  .totaluser {
+    font-size: 21px !important;
+  }
+  .col-lg-3.col-md-4 {
+    width: 18% !important;
+  }
+
+  .classes {
+    font-size: 22.4px !important;
+  }
+}
+
+/* Teacher */
