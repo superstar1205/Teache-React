@@ -58,6 +58,28 @@ const Users: React.FC = () => {
     console.log('AAA:', id);
   }
 
+  const handlePrevious = (page:any) => {
+    console.log("FPagenumber", page);
+    if(!page){
+      page=1;
+    } else{
+      let current_page = page;
+      let previous_page = current_page-1;
+      setSelectedOption(previous_page.toString());
+    }
+  }
+  const handleNext = (page:any) => {
+    console.log("FPagenumber", page);
+    if(!page){
+      page=1;
+    }
+    if(page < totalCount/10){
+      let current_page = page;
+      let previous_page = Number(current_page)+1;
+      setSelectedOption(previous_page.toString());
+    }
+  }
+
   useEffect(() => {
     const axiosConfig: any = {
       headers: {
@@ -106,6 +128,7 @@ const Users: React.FC = () => {
     return content;
   };
   const handleSelectedOption = (e: any) => {
+    console.log(e.target.value);
     setSelectedOption(e.target.value);
   };
   const handleStatusSelection = (e: any) => {
@@ -649,6 +672,7 @@ const Users: React.FC = () => {
                         height: "42px",
                       }}
                       type="button"
+                      onClick={() => handlePrevious(selectedOption)}
                       className="btn btn-default btn-sm"
                     >
                       <i
@@ -659,6 +683,7 @@ const Users: React.FC = () => {
 
                     <button
                       type="button"
+                      onClick={() => handleNext(selectedOption)}
                       className="btn btn-default btn-sm"
                       style={{
                         background: "#DDE9FF",

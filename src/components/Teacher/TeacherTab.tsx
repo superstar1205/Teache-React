@@ -200,9 +200,9 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.h}</span>
-                  <Card style={boxStyle}>
-                    {props.teacherDetail.cancellation && props.teacherDetail.cancellation.length > 0 ? props.teacherDetail.cancellation.map((value_c_cp:any, index:any ) => (value_c_cp.policy +": "+ value_c_cp.percentage+ "%, ")) : "No Cancellation Policy"}
-                  </Card>
+                  {props.teacherDetail.cancellation && props.teacherDetail.cancellation.length > 0 ? props.teacherDetail.cancellation.map((value_c_cp:any, index:any ) => (<Card style={boxStyle}>
+                    {value_c_cp.policy}: {value_c_cp.percentage}%
+                    </Card>)) : <Card>No Policy</Card>}
                 </ListGroup.Item>
 
                 <ListGroup.Item

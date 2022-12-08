@@ -20,19 +20,19 @@ const btnStyle: any = {
 
 export default function ViewTeacherDetail(props: any) {
   const [show, setShow] = useState(props.viewDetail);
-  const [teacherDetail, setTeacherDetail]: any[] = useState([]);
+  const [teacherDetail, setTeacherDetail] = useState(props.user);
+  //const [teacherDetail, setTeacherDetail]: any[] = useState([]);
 
   const handleClose = () => {
     setShow(false);
     props.handleViewParentCallback(false);
   };
 
-  useMemo(() => {
-    BaseUrl.get(`/teachers/${props.userId}`).then((res) => {
-      setTeacherDetail(res.data.data);
-    });
-  }, [props.userId]);
-console.log(teacherDetail);
+  // useMemo(() => {
+  //   BaseUrl.get(`/teachers/${props.id}`).then((res) => {
+  //     setTeacherDetail(res.data.data);
+  //   });
+  // }, [props.id]);
   return (
     <>
       <Modal

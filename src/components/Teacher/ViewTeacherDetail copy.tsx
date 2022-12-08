@@ -5,6 +5,7 @@ import TeacherTab from './TeacherTab';
 import BaseUrl from "../../BaseUrl/BaseUrl";
 
 export default function ViewTeacherDetail(props:any) {
+  console.log(props);
     const [show, setShow] = useState(props.viewDetail);
     const [teacherDetail , setTeacherDetail]:any[] = useState([])
 
@@ -14,14 +15,15 @@ export default function ViewTeacherDetail(props:any) {
     }
 
     useMemo(()=>{
-      BaseUrl.get(`/teachers/${props.userId}`).then(res=>{
+
+      BaseUrl.get(`/teachers/${props.id}`).then(res=>{
         console.log(res)
         setTeacherDetail(res.data.data)
 
       })
 
 
-    },[props.userId])
+    },[props.id])
   
     return (
       <>
