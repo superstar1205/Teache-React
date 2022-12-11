@@ -72,7 +72,7 @@ export default function ViewTeacherDetail(props: any) {
               <Col md={4} lg={4} style={{ background: "#F9FBFF" }}>
                 <Card.Img
                   variant="top"
-                  src={teacherDetail && teacherDetail.user && imageBaseUrl + teacherDetail.user.profile_pic}
+                  src={teacherDetail && teacherDetail.profile_pic}
                   alt="profile"
                   style={{
                     borderRadius: "15px",

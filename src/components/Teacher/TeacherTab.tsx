@@ -15,6 +15,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 
 export default function TeacherTab(props: any) {
   const [key, setKey] = useState("home");
+  const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const fontStyle: any = {
     fontStyle: "normal",
     fontWeight: 500,
@@ -269,17 +270,24 @@ export default function TeacherTab(props: any) {
                   <span style={fontStyle}>{profileQuestion.o}</span>
                   
                   <Card style={boxStyle}>
-                  <Card.Img
-                  variant="top"
-                  src={props.teacherDetail.profile_pic}
-                  alt="profile"
-                  style={{
-                    borderRadius: "15px",
-                    width: "118px",
-                    height: "118px",
-                    margin: "15px 20px 10px 30px",
-                  }}
-                />
+                    <div style={{
+                      display : "flex",
+                      overflowX : "auto",
+                    }}>
+                    {props.teacherDetail.user &&props.teacherDetail.user.gallery.map((value_c_g: any, index_c_g: any) => (
+                      <Card.Img
+                      variant="top"
+                      src={imageBaseUrl + value_c_g.name}
+                      alt="profile"
+                      style={{
+                        borderRadius: "15px",
+                        width: "118px",
+                        height: "118px",
+                        margin: "15px 20px 10px 30px",
+                      }}
+                    />
+                    ))}
+                    </div>                 
                   </Card>
                 </ListGroup.Item>
               </ListGroup>

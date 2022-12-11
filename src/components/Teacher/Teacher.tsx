@@ -13,9 +13,6 @@ import { AiOutlineCaretDown } from "react-icons/ai";
 import EditTeacherDetail from "./EditTeacherDetail";
 import ViewTeacherDetail from "./ViewTeacherDetail";
 
-const status = ["active", "in-active", "block"];
-const classTypes = ["Cooking", "Rock Climbing"];
-const cities = ["Abilene", "Phoenix", "Seattle", "Las Vegas"];
 const Teacher: React.FC = () => {
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("user", "list"));
@@ -36,7 +33,7 @@ const Teacher: React.FC = () => {
   const [showerCount, setShowerCount] = useState(1);
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-
+  const [pagenumber, setPageNumber] = useState(0);
   const [teacherData, setTeacherData]: any[] = useState([]);
 
   const handleParentCallback = (childData: any) => {
@@ -82,6 +79,7 @@ const Teacher: React.FC = () => {
   const handleDelete = (id: any) => {
     setTecherId(id);
     setSmShow(true);
+    console.log("Show id:", id);
   };
   const handleClear = () => {
     setSearchText("");
@@ -98,12 +96,15 @@ const Teacher: React.FC = () => {
   const handlePrevious = (page:any) => {
     if(!page){
       page=1;
+      setPageNumber(page-1);
     } else if(page <= 1){
       page = 1;
+      setPageNumber(page-1);
     }
     else{
       let current_page = page;
       let previous_page = current_page-1;
+      setPageNumber(previous_page-1);
       setPage(previous_page.toString());
     }
   }
@@ -111,17 +112,15 @@ const Teacher: React.FC = () => {
     if(!page){
       page=2;
       setPage(page);
+      setPageNumber(page-1);
     } else if(page <= 1){
-      page = 1
-      console.log("QWE", page)
-      let current_page = page;
-      let next_page = Number(current_page)+1;
-      setPage(next_page.toString());
-      console.log(next_page.toString())
+      page = 2;
+      setPageNumber(page-1);
+      setPage(page);
     }else if(page < totalCount/10){
-      console.log("ASDA", page)
       let current_page = page;
       let next_page = Number(current_page)+1;
+      setPageNumber(next_page-1);
       setPage(next_page.toString());
     }
   }
@@ -644,6 +643,9 @@ const Teacher: React.FC = () => {
                               </svg>
                             </button>
                             <button
+                            onClick={() => handleDelete(
+                              value.id
+                            )}
                               className="btn btn-danger btn-sm actionBtn2"
                             >
                               <svg
@@ -711,6 +713,9 @@ const Teacher: React.FC = () => {
                                   </svg>
                                 </button>
                                 <button
+                                onClick={() => handleDelete(
+                                  value.id
+                                )}
                                   className="btn btn-danger btn-sm actionBtn2"
                                 >
                                   <svg
@@ -797,7 +802,7 @@ const Teacher: React.FC = () => {
                         
                       }}
                     >
-                      {showerCount} of {totalCount}
+                      {pagenumber?showerCount + 10*(pagenumber): "10"} of {totalCount}
                     </label>
                     <button
                       onClick={()=>handlePrevious(page)}

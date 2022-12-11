@@ -87,7 +87,7 @@ export default function EditUserDetail(props: any) {
             >
               User Current Status :
             </span>
-            {getBadge(props.userStatus)}
+            {props.userStatus === "active" ? getBadge("active") : getBadge("block")}
           </p>
 
           <Form.Select

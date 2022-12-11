@@ -4,7 +4,7 @@ import { updateCurrentPath } from "../../store/actions/root.actions";
 import ViewUserDetail from "./ViewUserDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
-import { FormControl, Col, Row } from "react-bootstrap";
+import { FormControl, Col, Row, Modal } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import { Link, useLocation } from "react-router-dom";
 import { getBadge, getAbbr } from "../../utils";
@@ -26,10 +26,12 @@ const Users: React.FC = () => {
   const [showerCount, setShowerCount] = useState(1);
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedStaus, setSelectedStatus] = useState("");
+  const [smShow, setSmShow] = useState(false);
+  const [deleteLoader, setDeleteLoader] = useState(false);
   const [loader, setLoader] = useState(true);
-  const [selectedNumber, setSelectedNumber] = useState("");
-
+  const [pagenumber, setPageNumber] = useState(0);
   var options: any = { year: "numeric", month: "long", day: "numeric" };
+  
 
   const DateFunc = (val: any) => {
     const formatedDate = new Date(parseInt(val)).toLocaleString(
@@ -64,36 +66,69 @@ const Users: React.FC = () => {
     setDetail(item);
   };
 
-  const handleDeleteItem = (id: any) => {
-    console.log('AAA:', id);
-  }
+  const handleDelete = (id: any) => {
+    setUserId(id);
+    setSmShow(true);
+    console.log("Show id:", id);
+  };
+  const cancelDelete = () => {
+    setUserId(null);
+    setSmShow(false);
+  };
+
+  const ConfirmDelete = async () => {
+    setDeleteLoader(true);
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+
+    BaseUrl.delete(`/delete-user/${userId}`, axiosConfig)
+      .then((res) => {
+        toast.success(res.data.message);
+        cancelDelete();
+        setDeleteLoader(false);
+      })
+      .catch((err) => {
+        if (err.response) {
+          toast.error(err.response.data.message);
+          cancelDelete();
+          setDeleteLoader(false);
+        }
+      });
+  };
 
   const handlePrevious = (page:any) => {
     if(!page){
        page=1;
+       setPageNumber(page-1);
     } else if(page <= 1){
        page=1;
+       setPageNumber(page-1);
     }
     else{
       let current_page = page;
       let previous_page = current_page-1;
+      setPageNumber(previous_page-1);
       setSelectedOption(previous_page.toString());
-      console.log("pagenumber", selectedOption);
      }
   }
   const handleNext = (page:any) => {
     if(!page){
     page=2;
+    setPageNumber(page-1);
     setSelectedOption(page);
     } else if(page <= 1){
       let current_page = page;
-       let next_page = Number(current_page)+1;
+      let next_page = Number(current_page)+1;
+      setPageNumber(next_page-1);
        setSelectedOption(next_page.toString());
     } else if(page < totalCount/10){
       let current_page = page;
       let next_page = Number(current_page)+1;
+      setPageNumber(next_page-1);
       setSelectedOption(next_page.toString());
-      console.log("npagenumber", selectedOption);
     }
   }
 
@@ -104,7 +139,7 @@ const Users: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&limit=${selectedNumber}&&search=${searchText}&filter=${selectedStaus}`,
+      `/user?page=${selectedOption}&&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
@@ -122,7 +157,7 @@ const Users: React.FC = () => {
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedNumber, selectedStaus]);
+  }, [showModal, searchText, selectedOption, selectedStaus]);
 
   const handleClear = () => {
     setSearchText("");
@@ -209,6 +244,36 @@ const Users: React.FC = () => {
               background: "#F3F7FF",
             }}
           >
+            <Modal
+              centered
+              show={smShow}
+              backdrop="static"
+              onHide={() => setSmShow(false)}
+              aria-labelledby="example-modal-sizes-title-lg"
+            >
+              <div className="p-3">
+                <Modal.Title id="example-modal-sizes-title-sm">
+                  Are you sure to delete this teacher ?
+                </Modal.Title>
+
+                <Modal.Body>
+                  <div className=" d-flex flex-row w-100  mt-2">
+                    <button
+                      onClick={cancelDelete}
+                      className="btn btn-danger  mr-3 btn-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={ConfirmDelete}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </Modal.Body>
+              </div>
+            </Modal>
             <div className="card-body" style={{ padding: "0px" }}>
               <div className="d-flex mb-2" style={{ marginTop: "30px" }}>
                 <div
@@ -455,11 +520,16 @@ const Users: React.FC = () => {
                               <span>{item.id}</span>
                             </Link>
                           </td>
-                          <td style={{ color: "#817EB7" }}>{item.city}</td>
-                          <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {getAbbr(item.state)}
+                          <td style={{ color: "#817EB7" }}>
+                          {item.userlocation && item.userlocation.map((value:any, index:any) => (
+                            value.type === "home" ? value.city : ""
+                          ))}
                           </td>
-                          {/* <td></td> */}
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                          {item.userlocation && item.userlocation.map((value:any, index:any) => (
+                            value.type === "home" ? getAbbr(value.state) : ""
+                          ))}
+                          </td>
                           <td style={{ color: "#817EB7" }}>{item.email}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
@@ -531,7 +601,7 @@ const Users: React.FC = () => {
                               </svg>
                             </button>
                             <button
-                              onClick={()=> handleDeleteItem(item.id)}
+                              onClick={()=> handleDelete(item.id)}
                               className="btn btn-danger btn-sm actionBtn2"
                             >
                               {/* <i className="fas fa-trash"></i> */}
@@ -618,7 +688,7 @@ const Users: React.FC = () => {
                                     width: "36px",
                                     height: "36px",
                                   }}
-                                  onClick={()=> handleDeleteItem(item.id)}
+                                  onClick={()=> handleDelete(item.id)}
                                   className="btn btn-danger btn-sm"
                                 >
                                   {/* <i className="fas fa-trash"></i> */}
@@ -687,7 +757,7 @@ const Users: React.FC = () => {
                 >
                   <div>
                     <label className="totaluser" style={{ color: "#817EB7", marginRight: "20px" }}>
-                      {showerCount} of {totalCount}
+                      {pagenumber?10*(pagenumber)+showerCount: "10"} of {totalCount}
                     </label>
                     <button
                       style={{
