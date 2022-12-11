@@ -201,7 +201,7 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.h}</span>
-                  {props.teacherDetail.cancellation && props.teacherDetail.cancellation.length > 0 ? props.teacherDetail.cancellation.map((value_c_cp:any, index:any ) => (<Card style={boxStyle}>
+                  {props.teacherDetail.cancellation && props.teacherDetail.cancellation.length > 0 ? props.teacherDetail.cancellation.map((value_c_cp:any, index_c_cp:any ) => (<Card key={index_c_cp} style={boxStyle}>
                     {value_c_cp.policy}: {value_c_cp.percentage}%
                     </Card>)) : <Card>No Policy</Card>}
                 </ListGroup.Item>
@@ -246,9 +246,9 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.m}</span>
-                  {props.teacherDetail.discount_policy_for_group_class && props.teacherDetail.discount_policy_for_group_class.length >0 ? props.teacherDetail.discount_policy_for_group_class.map((value_c_d:any, index:any) => (
+                  {props.teacherDetail.discount_policy_for_group_class && props.teacherDetail.discount_policy_for_group_class.length >0 ? props.teacherDetail.discount_policy_for_group_class.map((value_c_d:any, index_c_d:any) => (
                       
-                  <Card style={boxStyle}>
+                  <Card key={index_c_d} style={boxStyle}>
                     {value_c_d.policy} : {value_c_d.percentage}%
                   </Card>
                     ) ) : <Card style={boxStyle}>No Policy</Card> }
@@ -257,9 +257,9 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.n}</span>
-                  {props.teacherDetail.discount_policy_for_private_class && props.teacherDetail.discount_policy_for_private_class.length >0 ? props.teacherDetail.discount_policy_for_private_class.map((value_c_d:any, index:any) => (
-                      <Card style={boxStyle}>
-                        {value_c_d.policy} : {value_c_d.percentage}%
+                  {props.teacherDetail.discount_policy_for_private_class && props.teacherDetail.discount_policy_for_private_class.length >0 ? props.teacherDetail.discount_policy_for_private_class.map((value_c_dp:any, index_c_dp:any) => (
+                      <Card key={index_c_dp} style={boxStyle}>
+                        {value_c_dp.policy} : {value_c_dp.percentage}%
                       </Card>
                     ) ) : <Card style={boxStyle}>No Policy</Card> }
                   
@@ -276,6 +276,7 @@ export default function TeacherTab(props: any) {
                     }}>
                     {props.teacherDetail.user &&props.teacherDetail.user.gallery.map((value_c_g: any, index_c_g: any) => (
                       <Card.Img
+                      key={index_c_g}
                       variant="top"
                       src={imageBaseUrl + value_c_g.name}
                       alt="profile"

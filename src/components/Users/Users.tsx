@@ -139,7 +139,7 @@ const Users: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
@@ -410,8 +410,8 @@ const Users: React.FC = () => {
                       >
                       User
                         <AiOutlineCaretDown
-                        onClick={() => requestSort('first_name')}
-                        className={getClassNamesFor('first_name')}
+                        onClick={() => requestSort('name')}
+                        className={getClassNamesFor('name')}
                         ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
@@ -475,8 +475,8 @@ const Users: React.FC = () => {
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         Last
                         <AiOutlineCaretDown
-                        onClick={() => requestSort('updated_at')}
-                        className={getClassNamesFor('updated_at')}
+                        onClick={() => requestSort('updated')}
+                        className={getClassNamesFor('updated')}
                         ></AiOutlineCaretDown>
                       </th>
                       <th
@@ -504,7 +504,7 @@ const Users: React.FC = () => {
                               // fontStyle: "normal",
                             }}
                           >
-                            {item.first_name} {item.last_name}
+                            {item.name}
                           </td>
                           <td>
                             <Link
@@ -521,14 +521,10 @@ const Users: React.FC = () => {
                             </Link>
                           </td>
                           <td style={{ color: "#817EB7" }}>
-                          {item.userlocation && item.userlocation.map((value:any, index:any) => (
-                            value.type === "home" ? value.city : ""
-                          ))}
+                          {item.city}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                          {item.userlocation && item.userlocation.map((value:any, index:any) => (
-                            value.type === "home" ? getAbbr(value.state) : ""
-                          ))}
+                          {getAbbr(item.state)}
                           </td>
                           <td style={{ color: "#817EB7" }}>{item.email}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
@@ -559,10 +555,10 @@ const Users: React.FC = () => {
                             {item.status ==="active" ?getBadge("active"): getBadge("block")}
                           </td>
                           <td style={{ color: "#817EB7" }}>
-                            {DateFunc(item.created_at)}
+                            {DateFunc(item.created)}
                             </td>
                           <td style={{ color: "#817EB7" }}>
-                          {DateFunc(item.updated_at)}
+                          {DateFunc(item.updated)}
                             </td>
                           {/* <td>
                             {item.status.charAt(0).toUpperCase() +

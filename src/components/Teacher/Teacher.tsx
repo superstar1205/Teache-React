@@ -508,8 +508,8 @@ const Teacher: React.FC = () => {
                       >
                         Activated
                         <AiOutlineCaretDown
-                          onClick={() => requestSort('created_at')}
-                          className={getClassNamesFor('created_at')}
+                          onClick={() => requestSort('created')}
+                          className={getClassNamesFor('created')}
                         />
                       </th>
                       <th
@@ -518,8 +518,8 @@ const Teacher: React.FC = () => {
                       >
                         Lasted
                         <AiOutlineCaretDown
-                          onClick={() => requestSort('updated_at')}
-                          className={getClassNamesFor('updated_at')}
+                          onClick={() => requestSort('updated')}
+                          className={getClassNamesFor('updated')}
                         />
                       </th>
                       <th
@@ -546,7 +546,7 @@ const Teacher: React.FC = () => {
                               // fontStyle: "normal",
                             }}
                           >
-                            {value.user.first_name} {value.user.last_name}
+                            {value.name}
                           </td>
                           <td>
                             <Link
@@ -573,10 +573,10 @@ const Teacher: React.FC = () => {
                               color: "#817EB7",
                             }}
                           >
-                            {value.class.title}
+                            {value.class_title}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {value.user.email}
+                            {value.email}
                           </td>
                           <td
                             style={{
@@ -600,10 +600,10 @@ const Teacher: React.FC = () => {
                             {getTeacherBadge(value.status)}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {DateFunc(value.created_at)}
+                            {DateFunc(value.created)}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {DateFunc(value.updated_at)}
+                            {DateFunc(value.updated)}
                           </td>
                           <td className="t2" style={{  textAlign: "center" }}>
                             <button
