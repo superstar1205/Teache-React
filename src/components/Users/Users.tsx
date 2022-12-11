@@ -126,8 +126,8 @@ const Users: React.FC = () => {
 
   const handleClear = () => {
     setSearchText("");
-  };
     setSelectedOption("");
+  };
   const handleSelectedClear = () => {
     setSelectedStatus("");
     setSelectedOption("");
