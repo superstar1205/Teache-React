@@ -83,7 +83,7 @@ const Users: React.FC = () => {
   }
   const handleNext = (page:any) => {
     if(!page){
-    page=1;
+    page=2;
     setSelectedOption(page);
     } else if(page <= 1){
       let current_page = page;
