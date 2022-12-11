@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button, Modal, Card } from "react-bootstrap";
 import { Row, Col, Form } from "react-bootstrap";
+import BaseUrl from "../../BaseUrl/BaseUrl";
 export default function ViewUserDetail(props: any) {
   console.log(props)
   const [show, setShow] = useState(props.viewDetail);
+  const [userDetail, setUserDetail]: any[] = useState([]);
   var options: any = {
     weekday: "long",
     year: "numeric",
@@ -16,7 +18,6 @@ export default function ViewUserDetail(props: any) {
       "en-US",
       options
     );
-    console.log(formatedDate);
     return formatedDate;
   };
 
@@ -51,6 +52,18 @@ export default function ViewUserDetail(props: any) {
     o: "Class Images",
   };
 
+  useMemo(() => {
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+    BaseUrl.get(`/users/${props.detail.id}`, axiosConfig).then((res) => {
+      console.log(res.data.data);
+      setUserDetail(res.data.data);
+    });
+  }, [props.detail.id]);
+
   return (
     <>
       <Modal show={show} onHide={handleClose} centered size="lg">
@@ -68,7 +81,7 @@ export default function ViewUserDetail(props: any) {
               textTransform: "capitalize",
             }}
           >
-            {props.detail.first_name} {props.detail.last_name}'s Detail
+            {props.detail.name}'s Detail
           </Modal.Title>
         </Modal.Header>
         <Modal.Body
@@ -96,7 +109,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.first_name}
+                {userDetail && userDetail.first_name}
               </Card>
             </Col>
             <Col style={{ marginTop: "15px" }}>
@@ -114,7 +127,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.last_name}
+                {userDetail && userDetail.last_name}
               </Card>
             </Col>
           </Row>
@@ -134,7 +147,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.address1}
+                {userDetail && userDetail.address1}
               </Card>
             </Col>
             <Col style={{ marginTop: "15px" }}>
@@ -152,7 +165,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.address2}
+                {userDetail && userDetail.address2}
               </Card>
             </Col>
           </Row>
@@ -172,7 +185,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.zip_code}
+                {userDetail && userDetail.zip_code}
               </Card>
             </Col>
             <Col style={{ marginTop: "15px" }}>
@@ -248,7 +261,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {props.detail.country_code} {props.detail.phone_number}
+                {userDetail && userDetail.country_code} {userDetail && userDetail.phone_number}
               </Card>
             </Col>
             <Col></Col>
@@ -269,7 +282,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {DateFunc(props.detail.created_at)}
+                {userDetail && DateFunc(userDetail.created_at)}
               </Card>
             </Col>
             <Col style={{ marginTop: "15px" }}>
@@ -287,7 +300,7 @@ export default function ViewUserDetail(props: any) {
                   border: "none",
                 }}
               >
-                {DateFunc(props.detail.updated_at)}
+                {userDetail && DateFunc(userDetail.updated_at)}
               </Card>
             </Col>
           </Row>
