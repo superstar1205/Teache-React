@@ -33,6 +33,7 @@ const Teacher: React.FC = () => {
   const [techerId, setTecherId] = useState(null);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const [totalCount, setTotalCount] = useState(1);
+  const [showerCount, setShowerCount] = useState(1);
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
 
@@ -99,7 +100,7 @@ const Teacher: React.FC = () => {
       page=1;
     } else if(page <= 1){
       page = 1;
-    } 
+    }
     else{
       let current_page = page;
       let previous_page = current_page-1;
@@ -108,13 +109,17 @@ const Teacher: React.FC = () => {
   }
   const handleNext = (page:any) => {
     if(!page){
-      page=1;
+      page=2;
+      setPage(page);
     } else if(page <= 1){
+      page = 1
+      console.log("QWE", page)
       let current_page = page;
       let next_page = Number(current_page)+1;
       setPage(next_page.toString());
-    }
-    if(page < totalCount/10){
+      console.log(next_page.toString())
+    }else if(page < totalCount/10){
+      console.log("ASDA", page)
       let current_page = page;
       let next_page = Number(current_page)+1;
       setPage(next_page.toString());
@@ -171,6 +176,7 @@ const Teacher: React.FC = () => {
         if (res.data) {
           setTotalCount(res.data.count);
           setTeacherData(res.data.data);
+          setShowerCount(res.data.data.length);
           console.log(res.data)
         } else {
           setTotalCount(0);
@@ -503,8 +509,8 @@ const Teacher: React.FC = () => {
                       >
                         Activated
                         <AiOutlineCaretDown
-                          onClick={() => requestSort('created')}
-                          className={getClassNamesFor('created')}
+                          onClick={() => requestSort('created_at')}
+                          className={getClassNamesFor('created_at')}
                         />
                       </th>
                       <th
@@ -513,8 +519,8 @@ const Teacher: React.FC = () => {
                       >
                         Lasted
                         <AiOutlineCaretDown
-                          onClick={() => requestSort('updated')}
-                          className={getClassNamesFor('updated')}
+                          onClick={() => requestSort('updated_at')}
+                          className={getClassNamesFor('updated_at')}
                         />
                       </th>
                       <th
@@ -541,7 +547,7 @@ const Teacher: React.FC = () => {
                               // fontStyle: "normal",
                             }}
                           >
-                            {value.name}
+                            {value.user.first_name} {value.user.last_name}
                           </td>
                           <td>
                             <Link
@@ -568,10 +574,10 @@ const Teacher: React.FC = () => {
                               color: "#817EB7",
                             }}
                           >
-                            {value.class_title}
+                            {value.class.title}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {value.email}
+                            {value.user.email}
                           </td>
                           <td
                             style={{
@@ -595,10 +601,10 @@ const Teacher: React.FC = () => {
                             {getTeacherBadge(value.status)}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {DateFunc(value.created)}
+                            {DateFunc(value.created_at)}
                           </td>
                           <td style={{  color: "#817EB7" }}>
-                            {DateFunc(value.updated)}
+                            {DateFunc(value.updated_at)}
                           </td>
                           <td className="t2" style={{  textAlign: "center" }}>
                             <button
@@ -752,7 +758,7 @@ const Teacher: React.FC = () => {
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
                     >
-                      {handleOption()}
+                      {/* {handleOption()} */}
                     </select>
                   </div>
                 </div>
@@ -791,7 +797,7 @@ const Teacher: React.FC = () => {
                         
                       }}
                     >
-                      10 of {totalCount}
+                      {showerCount} of {totalCount}
                     </label>
                     <button
                       onClick={()=>handlePrevious(page)}

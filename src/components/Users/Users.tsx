@@ -69,36 +69,32 @@ const Users: React.FC = () => {
   }
 
   const handlePrevious = (page:any) => {
-    // if(!page){
-    //   page=1;
-    // } else if(page <= 1){
-    //   page=1;
-    // }
-    // else{
+    if(!page){
+       page=1;
+    } else if(page <= 1){
+       page=1;
+    }
+    else{
       let current_page = page;
       let previous_page = current_page-1;
       setSelectedOption(previous_page.toString());
       console.log("pagenumber", selectedOption);
-    // }
+     }
   }
   const handleNext = (page:any) => {
     if(!page){
     page=1;
     setSelectedOption(page);
-    }
-    // } else if(page <= 1){
-    //   let current_page = page;
-    //   let next_page = Number(current_page)+1;
-    //   setSelectedOption(next_page.toString());
-    // }
-    // if(page < totalCount/10){
-    else{ 
+    } else if(page <= 1){
+      let current_page = page;
+       let next_page = Number(current_page)+1;
+       setSelectedOption(next_page.toString());
+    } else if(page < totalCount/10){
       let current_page = page;
       let next_page = Number(current_page)+1;
       setSelectedOption(next_page.toString());
       console.log("npagenumber", selectedOption);
     }
-    // }
   }
 
   useEffect(() => {
@@ -108,7 +104,7 @@ const Users: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/users?page=${selectedOption}&limit=${selectedNumber}&&search=${searchText}&filter=${selectedStaus}`,
+      `/user?page=${selectedOption}&limit=${selectedNumber}&&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
@@ -158,7 +154,7 @@ const Users: React.FC = () => {
 
   const useSortableData = (items, config = null) => {
     const [sortConfig, setSortConfig] = React.useState(config);
-  
+
     const sortedItems = React.useMemo(() => {
       let sortableItems = [...items];
       if (sortConfig !== null) {
@@ -349,8 +345,8 @@ const Users: React.FC = () => {
                       >
                       User
                         <AiOutlineCaretDown
-                        onClick={() => requestSort('name')}
-                        className={getClassNamesFor('name')}
+                        onClick={() => requestSort('first_name')}
+                        className={getClassNamesFor('first_name')}
                         ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
@@ -414,8 +410,8 @@ const Users: React.FC = () => {
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         Last
                         <AiOutlineCaretDown
-                        onClick={() => requestSort('updated')}
-                        className={getClassNamesFor('updated')}
+                        onClick={() => requestSort('updated_at')}
+                        className={getClassNamesFor('updated_at')}
                         ></AiOutlineCaretDown>
                       </th>
                       <th
@@ -443,13 +439,13 @@ const Users: React.FC = () => {
                               // fontStyle: "normal",
                             }}
                           >
-                            {item.name}
+                            {item.first_name} {item.last_name}
                           </td>
                           <td>
                             <Link
                               // className="nav-link"
                               to={{
-                                pathname: `/users/${item.id}`,
+                                pathname: `/user/${item.id}`,
                                 state: {
                                   userinfo: item,
                                 },
@@ -493,10 +489,10 @@ const Users: React.FC = () => {
                             {item.status ==="active" ?getBadge("active"): getBadge("block")}
                           </td>
                           <td style={{ color: "#817EB7" }}>
-                            {DateFunc(item.created)}
+                            {DateFunc(item.created_at)}
                             </td>
                           <td style={{ color: "#817EB7" }}>
-                          {DateFunc(item.updated)}
+                          {DateFunc(item.updated_at)}
                             </td>
                           {/* <td>
                             {item.status.charAt(0).toUpperCase() +
@@ -665,10 +661,6 @@ const Users: React.FC = () => {
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
                     >
-                      <option value="10">10</option>
-                      <option value="15">15</option>
-                      <option value="20">20</option>
-                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
