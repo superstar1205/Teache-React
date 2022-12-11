@@ -7,7 +7,7 @@ import EditUserDetail from "./EditUserDetail";
 import { FormControl, Col, Row } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import { Link, useLocation } from "react-router-dom";
-import { getBadge } from "../../utils";
+import { getBadge, getAbbr } from "../../utils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AiOutlineCaretDown } from "react-icons/ai";
@@ -23,10 +23,21 @@ const Users: React.FC = () => {
   const [detail, setDetail] = useState();
   const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
+  const [showerCount, setShowerCount] = useState(1);
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedStaus, setSelectedStatus] = useState("");
   const [loader, setLoader] = useState(true);
+  const [selectedNumber, setSelectedNumber] = useState("");
 
+  var options: any = { year: "numeric", month: "long", day: "numeric" };
+
+  const DateFunc = (val: any) => {
+    const formatedDate = new Date(parseInt(val)).toLocaleString(
+      "en-US",
+      options
+    );
+    return formatedDate;
+  };
   const handleParentCallback = (childData: any) => {
     if (childData) {
       setShowModal(false);
@@ -46,7 +57,6 @@ const Users: React.FC = () => {
     setShowModal(true);
     setUserId(id);
     setUserStatus(status);
-    console.log('STATUSA', status);
   };
 
   const handleViewShowModal = (item: any) => {
@@ -59,25 +69,36 @@ const Users: React.FC = () => {
   }
 
   const handlePrevious = (page:any) => {
-    console.log("FPagenumber", page);
-    if(!page){
-      page=1;
-    } else{
+    // if(!page){
+    //   page=1;
+    // } else if(page <= 1){
+    //   page=1;
+    // }
+    // else{
       let current_page = page;
       let previous_page = current_page-1;
       setSelectedOption(previous_page.toString());
-    }
+      console.log("pagenumber", selectedOption);
+    // }
   }
   const handleNext = (page:any) => {
-    console.log("FPagenumber", page);
     if(!page){
-      page=1;
+    page=1;
+    setSelectedOption(page);
     }
-    if(page < totalCount/10){
+    // } else if(page <= 1){
+    //   let current_page = page;
+    //   let next_page = Number(current_page)+1;
+    //   setSelectedOption(next_page.toString());
+    // }
+    // if(page < totalCount/10){
+    else{ 
       let current_page = page;
-      let previous_page = Number(current_page)+1;
-      setSelectedOption(previous_page.toString());
+      let next_page = Number(current_page)+1;
+      setSelectedOption(next_page.toString());
+      console.log("npagenumber", selectedOption);
     }
+    // }
   }
 
   useEffect(() => {
@@ -87,14 +108,15 @@ const Users: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&limit=${selectedNumber}&&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
-        if (res.data) {          
+        if (res.data) {
+          console.log(res.data);
           setUserData(res.data.data);
           setTotalCount(res.data.count);
-          console.log(res.data.count, "------------count");
+          setShowerCount(res.data.data.length);
         } else {
           setUserData([]);
           setTotalCount(0);
@@ -104,7 +126,7 @@ const Users: React.FC = () => {
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedStaus]);
+  }, [showModal, searchText, selectedOption, selectedNumber, selectedStaus]);
 
   const handleClear = () => {
     setSearchText("");
@@ -124,7 +146,6 @@ const Users: React.FC = () => {
         </option>
       );
     }
-    console.log(Math.ceil(totalCount / 10), "-----------content");
     return content;
   };
   const handleSelectedOption = (e: any) => {
@@ -133,6 +154,50 @@ const Users: React.FC = () => {
   };
   const handleStatusSelection = (e: any) => {
     setSelectedStatus(e.target.value);
+  };
+
+  const useSortableData = (items, config = null) => {
+    const [sortConfig, setSortConfig] = React.useState(config);
+  
+    const sortedItems = React.useMemo(() => {
+      let sortableItems = [...items];
+      if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }, [items, sortConfig]);
+  
+    const requestSort = (key) => {
+      
+      console.log("SortBy", key);
+      let direction = 'ascending';
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'ascending'
+      ) {
+        direction = 'descending';
+      }
+      setSortConfig({ key, direction });
+    };
+  
+    return { items: sortedItems, requestSort, sortConfig };
+  };
+
+  const { items, requestSort, sortConfig } = useSortableData(userData);
+  const getClassNamesFor = (name) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
   };
 
   return (
@@ -282,37 +347,25 @@ const Users: React.FC = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        User
+                      User
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('name')}
+                        className={getClassNamesFor('name')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         ID
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('id')}
+                        className={getClassNamesFor('id')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         City
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('city')}
+                        className={getClassNamesFor('city')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th
                         scope="col"
@@ -320,24 +373,16 @@ const Users: React.FC = () => {
                       >
                         State
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('state')}
+                        className={getClassNamesFor('state')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
-                        Email
+                      Email
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('email')}
+                        className={getClassNamesFor('email')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th
                         scope="col"
@@ -345,13 +390,9 @@ const Users: React.FC = () => {
                       >
                         Classes
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('classes_count')}
+                        className={getClassNamesFor('classes_count')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th
                         scope="col"
@@ -359,35 +400,23 @@ const Users: React.FC = () => {
                       >
                         Status
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('status')}
+                        className={getClassNamesFor('status')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         Activated
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('created')}
+                        className={getClassNamesFor('created')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th scope="col" style={{ verticalAlign: "middle" }}>
                         Last
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
-                        />
+                        onClick={() => requestSort('updated')}
+                        className={getClassNamesFor('updated')}
+                        ></AiOutlineCaretDown>
                       </th>
                       <th
                         scope="col"
@@ -399,9 +428,9 @@ const Users: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {userData &&
-                      userData.length > 0 &&
-                      userData.map((item: any, index) => (
+                    {items &&
+                      items.length > 0 &&
+                      items.map((item: any, index) => (
                         <tr key={index}>
                           {/* <td>{index+1}</td> */}
                           <td
@@ -414,7 +443,7 @@ const Users: React.FC = () => {
                               // fontStyle: "normal",
                             }}
                           >
-                            {item.first_name} {item.last_name}
+                            {item.name}
                           </td>
                           <td>
                             <Link
@@ -430,12 +459,11 @@ const Users: React.FC = () => {
                               <span>{item.id}</span>
                             </Link>
                           </td>
-                          <td style={{ color: "#817EB7" }}>Seattle</td>
-                          {/* <td>{item.city}</td> */}
+                          <td style={{ color: "#817EB7" }}>{item.city}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            AL
+                            {getAbbr(item.state)}
                           </td>
-                          {/* <td>{item.state}</td> */}
+                          {/* <td></td> */}
                           <td style={{ color: "#817EB7" }}>{item.email}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
@@ -452,8 +480,7 @@ const Users: React.FC = () => {
                                 margin: "auto",
                               }}
                             >
-                              2433
-                              {/* <span>{item.classes}</span> */}
+                              <span>{item.classes_count ? item.classes_count : "2433" }</span>
                             </Link>
                           </td>
                           <td
@@ -463,12 +490,14 @@ const Users: React.FC = () => {
                               verticalAlign: "middle",
                             }}
                           >
-                            {getBadge(item.status)}
+                            {item.status ==="active" ?getBadge("active"): getBadge("block")}
                           </td>
-                          {/* <td>{item.activated}</td> */}
-                          <td style={{ color: "#817EB7" }}>01-08-2022</td>
-                          {/* <td>{item.last}</td> */}
-                          <td style={{ color: "#817EB7" }}>12-05-2022</td>
+                          <td style={{ color: "#817EB7" }}>
+                            {DateFunc(item.created)}
+                            </td>
+                          <td style={{ color: "#817EB7" }}>
+                          {DateFunc(item.updated)}
+                            </td>
                           {/* <td>
                             {item.status.charAt(0).toUpperCase() +
                               item.status.slice(1)}
@@ -506,6 +535,7 @@ const Users: React.FC = () => {
                               </svg>
                             </button>
                             <button
+                              onClick={()=> handleDeleteItem(item.id)}
                               className="btn btn-danger btn-sm actionBtn2"
                             >
                               {/* <i className="fas fa-trash"></i> */}
@@ -635,7 +665,10 @@ const Users: React.FC = () => {
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
                     >
-                      {handleOption()}
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
@@ -662,7 +695,7 @@ const Users: React.FC = () => {
                 >
                   <div>
                     <label className="totaluser" style={{ color: "#817EB7", marginRight: "20px" }}>
-                      10 of {totalCount}
+                      {showerCount} of {totalCount}
                     </label>
                     <button
                       style={{

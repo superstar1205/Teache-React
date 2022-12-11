@@ -245,28 +245,41 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.m}</span>
+                  {props.teacherDetail.discount_policy_for_group_class && props.teacherDetail.discount_policy_for_group_class.length >0 ? props.teacherDetail.discount_policy_for_group_class.map((value_c_d:any, index:any) => (
+                      
                   <Card style={boxStyle}>
-                    {props.teacherDetail.discount_policies && props.teacherDetail.discount_policies.length >0 ? props.teacherDetail.discount_policies.map((value_c_d:any, index:any) => (
-                      value_c_d.type === "group" ? value_c_d.policy +": "+value_c_d.percentage+"%, " : " "
-                    ) ) : "No Policy" }
+                    {value_c_d.policy} : {value_c_d.percentage}%
                   </Card>
+                    ) ) : <Card style={boxStyle}>No Policy</Card> }
                 </ListGroup.Item>
                 <ListGroup.Item
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.n}</span>
-                  <Card style={boxStyle}>
-                  {props.teacherDetail.discount_policies && props.teacherDetail.discount_policies.length >0 ? props.teacherDetail.discount_policies.map((value_c_d:any, index:any) => (
-                      value_c_d.type === "private" ? value_c_d.policy +": "+value_c_d.percentage+"%, " : " "
-                    ) ) : "No Policy"}
-                  </Card>
+                  {props.teacherDetail.discount_policy_for_private_class && props.teacherDetail.discount_policy_for_private_class.length >0 ? props.teacherDetail.discount_policy_for_private_class.map((value_c_d:any, index:any) => (
+                      <Card style={boxStyle}>
+                        {value_c_d.policy} : {value_c_d.percentage}%
+                      </Card>
+                    ) ) : <Card style={boxStyle}>No Policy</Card> }
+                  
                 </ListGroup.Item>
                 <ListGroup.Item
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.o}</span>
+                  
                   <Card style={boxStyle}>
-                    {props.teacherDetail.class_duration}
+                  <Card.Img
+                  variant="top"
+                  src={props.teacherDetail.profile_pic}
+                  alt="profile"
+                  style={{
+                    borderRadius: "15px",
+                    width: "118px",
+                    height: "118px",
+                    margin: "15px 20px 10px 30px",
+                  }}
+                />
                   </Card>
                 </ListGroup.Item>
               </ListGroup>
@@ -293,7 +306,7 @@ export default function TeacherTab(props: any) {
                     <div style={{paddingLeft:'10px', paddingTop:'18px'}}>Time & Class</div>
                   </Col>
               </Row>
-              { props.teacherDetail.classes && props.teacherDetail.classes.length >0 ? props.teacherDetail.classes.map(( value: any, index:any)=>(
+              {/* { props.teacherDetail.classes && props.teacherDetail.classes.length >0 ? props.teacherDetail.classes.map(( value: any, index:any)=>(
                 
                 <Row key={index} style={{ padding: "0px 10px 0px 10px" }}>
                 <Col
@@ -334,7 +347,7 @@ export default function TeacherTab(props: any) {
               </Col>
               <Col style={{ ...colStyle, padding: "20px" }}>
               </Col>
-            </Row> }
+            </Row> } */}
             </Tab.Pane>
             {/* *********************************************************************************************************** */}
           </Tab.Content>

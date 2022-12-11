@@ -451,7 +451,7 @@ const Class: React.FC = () => {
                 >
                   <div>
                     <label className="totaluser" style={{ color: "#817EB7", marginRight: "20px" }}>
-                      10 of 250
+                      10 of {totalCount}
                     </label>
                     <button
                       style={{

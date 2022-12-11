@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { getBadge } from "../../utils";
 
 export default function EditUserDetail(props: any) {
+  console.log(props);
   const [show, setShow] = useState(props.showModal);
   const [status, setStaus] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
@@ -25,8 +26,15 @@ export default function EditUserDetail(props: any) {
         status: status,
         user_id: props.userId,
       };
-      BaseUrl.post("/block-unblock", data)
+      console.log(data);
+      const axiosConfig: any = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+        },
+      };
+      BaseUrl.post("/block-unblock", data, axiosConfig)
         .then((res) => {
+          console.log('Hehehe')
           setCurrentStatus(status);
           props.handleCallback(true);
         })
@@ -102,9 +110,9 @@ export default function EditUserDetail(props: any) {
             <option value="" disabled selected>
               Choose New Status
             </option>
-            <option value="in-active">In-Active</option>
-            <option value="active">Active</option>
-            <option value="block">Block</option>
+            {
+              props.userStatus === "active" ? <option value="in-active">Block</option> : <option value="active">Unblock</option>
+            }
           </Form.Select>
         </Modal.Body>
         <Modal.Footer

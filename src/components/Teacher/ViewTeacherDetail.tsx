@@ -20,19 +20,24 @@ const btnStyle: any = {
 
 export default function ViewTeacherDetail(props: any) {
   const [show, setShow] = useState(props.viewDetail);
-  const [teacherDetail, setTeacherDetail] = useState(props.user);
-  //const [teacherDetail, setTeacherDetail]: any[] = useState([]);
-
+  // const [teacherDetail, setTeacherDetail] = useState(props.user);
+  const [teacherDetail, setTeacherDetail]: any[] = useState([]);
+  const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const handleClose = () => {
     setShow(false);
     props.handleViewParentCallback(false);
   };
-
-  // useMemo(() => {
-  //   BaseUrl.get(`/teachers/${props.id}`).then((res) => {
-  //     setTeacherDetail(res.data.data);
-  //   });
-  // }, [props.id]);
+  useMemo(() => {
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+    BaseUrl.get(`/teachers/${props.userId}`, axiosConfig).then((res) => {
+      setTeacherDetail(res.data.data);
+    });
+  }, [props.userId]);
+  console.log("B data", teacherDetail);
   return (
     <>
       <Modal
@@ -67,7 +72,8 @@ export default function ViewTeacherDetail(props: any) {
               <Col md={4} lg={4} style={{ background: "#F9FBFF" }}>
                 <Card.Img
                   variant="top"
-                  src="/teacher.png"
+                  src={teacherDetail && teacherDetail.user && imageBaseUrl + teacherDetail.user.profile_pic}
+                  alt="profile"
                   style={{
                     borderRadius: "15px",
                     width: "118px",
@@ -91,19 +97,19 @@ export default function ViewTeacherDetail(props: any) {
                     <p style={{ marginBottom: "11px", width: "600" }}>
                       <b style={{ color: "#6460F2" }}>Email:</b>{" "}
                       <b style={{ color: "#817EB7", marginLeft: "7px" }}>
-                      {props.user.user.email}
+                      {teacherDetail && teacherDetail.user && teacherDetail.user.email }
                       </b>
                     </p>
                     <p style={{ marginBottom: "11px", width: "600" }}>
                       <b style={{ color: "#6460F2" }}>Phone:</b>{" "}
                       <b style={{ color: "#817EB7", marginLeft: "7px" }}>
-                        {props.user.user.country_code+" "+props.user.user.phone_number}
+                        {teacherDetail && teacherDetail.user && teacherDetail.user.country_code+" "+ teacherDetail.user.phone_number}
                       </b>
                     </p>
                     <p style={{ marginBottom: "11px", width: "600" }}>
                       <b style={{ color: "#6460F2" }}>Location:</b>{" "}
                       <b style={{ color: "#817EB7", marginLeft: "7px" }}>
-                      {props.user.city}
+                      {teacherDetail && teacherDetail.user && teacherDetail.user.address1}
                       </b>
                     </p>
                   </Card.Text>

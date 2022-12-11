@@ -71,14 +71,13 @@ const Users: React.FC = (props: object) => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
           setUserData(res.data.data);
           setTotalCount(res.data.count);
-          console.log(res.data.data, "------------count");
         } else {
           setUserData([]);
           setTotalCount(0);
@@ -99,7 +98,6 @@ const Users: React.FC = (props: object) => {
         </option>
       );
     }
-    console.log(Math.ceil(totalCount / 10), "-----------content");
     return content;
   };
   const handleSelectedOption = (e: any) => {

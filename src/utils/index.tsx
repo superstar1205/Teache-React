@@ -166,6 +166,15 @@ export function getAbbr(country: string) {
       abbr = "Bk";
 
       break;
+    case "Texas":
+        abbr = "TX";
+  
+        break;     
+    case "New Jersey":
+          abbr = "NJ";
+    
+          break;
+  
 
     default:
       break;

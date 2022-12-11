@@ -4,9 +4,10 @@ import Form from "react-bootstrap/Form";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getBadge } from "../../utils";
+import { getBadge, getTeacherBadge } from "../../utils";
 
 export default function EditUserDetail(props: any) {
+ 
   const [show, setShow] = useState(props.showModal);
   const [status, setStaus] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
@@ -19,15 +20,22 @@ export default function EditUserDetail(props: any) {
   };
 
   const handleSubmitStatus = () => {
+    console.log("Data", status, props.userId);
     if (status !== "") {
       const data = {
         status: status,
         user_id: props.userId,
       };
-      BaseUrl.post("/accept-reject-teacher", data)
+      const axiosConfig: any = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+        },
+      };
+      BaseUrl.post("/accept-reject-teacher", data, axiosConfig)
         .then((res) => {
-          toast.success("Status Changed");
+          console.log('Haaa!');
           setCurrentStatus(status);
+          props.handleCallback(true);
         })
         .catch((err) => {
           toast.error("Something Went Wrong");
@@ -82,7 +90,7 @@ export default function EditUserDetail(props: any) {
             >
               User Current Status :
             </span>
-            {getBadge(props.userStatus)}
+            {getTeacherBadge(props.userStatus)}
           </p>
 
           <Form.Select
@@ -105,8 +113,9 @@ export default function EditUserDetail(props: any) {
             <option value="" disabled selected>
               Choose New Status
             </option>
-            <option value="active">Active</option>
-            <option value="block">Block</option>
+            <option value="accepted">Accepted</option>
+            <option value="awaiting">Awaiting</option>
+            <option value="rejected">Rejected</option>
           </Form.Select>
           <div
             style={{

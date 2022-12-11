@@ -9,6 +9,6 @@ export default axios.create({
 
     // new url
     // baseURL:"http://3.131.175.246:4500/admin"
-    baseURL:"https://dev.teache.co/admin"
-    // baseURL:"https://v1.teache.co/admin"
+    // baseURL:"https://dev.teache.co/admin"
+     baseURL:"https://v1.teache.co/admin"
 });
