@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { getBadge } from "../../utils";
 
 export default function EditUserDetail(props: any) {
-  console.log(props);
   const [show, setShow] = useState(props.showModal);
   const [status, setStaus] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
@@ -20,13 +19,11 @@ export default function EditUserDetail(props: any) {
   };
 
   const handleSubmitStatus = () => {
-    // alert(status)
     if (status !== "") {
       const data = {
         status: status,
         user_id: props.userId,
       };
-      console.log(data);
       const axiosConfig: any = {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
@@ -34,7 +31,11 @@ export default function EditUserDetail(props: any) {
       };
       BaseUrl.post("/block-unblock", data, axiosConfig)
         .then((res) => {
-          console.log('Hehehe')
+          if(res.data.message === "Status changed to: active"){
+            toast.success(res.data.message);
+          } else{
+            toast.success("Status changed to: block");
+          }
           setCurrentStatus(status);
           props.handleCallback(true);
         })

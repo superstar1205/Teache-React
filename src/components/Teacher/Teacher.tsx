@@ -31,21 +31,11 @@ const Teacher: React.FC = () => {
   const [deleteLoader, setDeleteLoader] = useState(false);
   const [totalCount, setTotalCount] = useState(1);
   const [showerCount, setShowerCount] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
+  const [itemNumber, setItemNumber] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [pagenumber, setPageNumber] = useState(0);
   const [teacherData, setTeacherData]: any[] = useState([]);
-
-  const handleParentCallback = (childData: any) => {
-    if(childData){
-      toast.success("Status Changed");
-      setShowModal(false);
-    }
-    else{
-      setShowModal(false);
-    }
-    
-  };
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pagesNumber, setPagesNumber] = useState(1);
   var options: any = { year: "numeric", month: "long", day: "numeric" };
 
   const DateFunc = (val: any) => {
@@ -54,6 +44,15 @@ const Teacher: React.FC = () => {
       options
     );
     return formatedDate;
+  };
+
+  const handleParentCallback = (childData: any) => {
+    if(childData){
+      setShowModal(false);
+    }
+    else{
+      setShowModal(false);
+    }
   };
 
   const handleViewParentCallback = (childData: any) => {
@@ -79,11 +78,10 @@ const Teacher: React.FC = () => {
   const handleDelete = (id: any) => {
     setTecherId(id);
     setSmShow(true);
-    console.log("Show id:", id);
   };
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption("");
+    setPage("");
   };
   const cancelDelete = () => {
     setTecherId(null);
@@ -94,40 +92,26 @@ const Teacher: React.FC = () => {
   };
   
   const handlePrevious = (page:any) => {
-    if(!page){
-      page=1;
-      setPageNumber(page-1);
-    } else if(page <= 1){
+    if(page <= 1){
       page = 1;
-      setPageNumber(page-1);
     }
     else{
       let current_page = page;
       let previous_page = current_page-1;
-      setPageNumber(previous_page-1);
       setPage(previous_page.toString());
     }
   }
   const handleNext = (page:any) => {
-    if(!page){
-      page=2;
-      setPage(page);
-      setPageNumber(page-1);
-    } else if(page <= 1){
-      page = 2;
-      setPageNumber(page-1);
-      setPage(page);
-    }else if(page < totalCount/10){
+    if(page < totalCount/10){
       let current_page = page;
       let next_page = Number(current_page)+1;
-      setPageNumber(next_page-1);
       setPage(next_page.toString());
     }
   }
 
   const handleOption = () => {
     let content = [];
-    for (var index = 1; index <= Math.ceil(totalCount / 10); index++) {
+    for (var index = 1; index <= pagesNumber; index++) {
       content.push(
         <option key={index} value={index}>
           {index}
@@ -159,6 +143,9 @@ const Teacher: React.FC = () => {
         }
       });
   };
+  const handleSelectItem = (e: any) => {
+    setItemNumber(e.target.value);
+  }
   const getTeachers = () => {
     setLoader(true);
     const axiosConfig: any = {
@@ -168,13 +155,15 @@ const Teacher: React.FC = () => {
     };
 
     BaseUrl.get(
-      `/teachers?page=${page}&search=${searchText}&filter=${selectedStatus}`,
+      `/teachers?page=${page}&limit=${itemNumber}&search=${searchText}&filter=${selectedStatus}`,
       axiosConfig
     )
       .then((res) => {
         if (res.data) {
           setTotalCount(res.data.count);
           setTeacherData(res.data.data);
+          setPageNumber(res.data.page);
+          setPagesNumber(res.data.pages);
           setShowerCount(res.data.data.length);
           console.log(res.data)
         } else {
@@ -193,7 +182,7 @@ const Teacher: React.FC = () => {
   };
   useEffect(() => {
     getTeachers();
-  }, [searchText, selectedStatus, page]);
+  }, [showModal, searchText, selectedStatus, itemNumber, page]);
 
   const useSortableData = (items, config = null) => {
     const [sortConfig, setSortConfig] = React.useState(config);
@@ -215,8 +204,6 @@ const Teacher: React.FC = () => {
     }, [items, sortConfig]);
   
     const requestSort = (key) => {
-      
-      console.log("SortBy", key);
       let direction = 'ascending';
       if (
         sortConfig &&
@@ -759,11 +746,18 @@ const Teacher: React.FC = () => {
                       Item per page:
                     </label>
                     <select
-                      value={selectedOption}
-                      onChange={(e) => handleSelectedOption(e)}
+                      value={itemNumber}
+                      onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
-                      {/* {handleOption()} */}
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
@@ -773,7 +767,6 @@ const Teacher: React.FC = () => {
                       style={{
                         marginRight: 10,
                         color: "#817EB7",
-                        
                       }}
                     >
                       Move to:
@@ -802,10 +795,10 @@ const Teacher: React.FC = () => {
                         
                       }}
                     >
-                      {pagenumber?showerCount + 10*(pagenumber): "10"} of {totalCount}
+                      {showerCount + (pageNumber-1)*itemNumber} of {totalCount}
                     </label>
                     <button
-                      onClick={()=>handlePrevious(page)}
+                      onClick={()=>handlePrevious(pageNumber)}
                       style={{
                         marginRight: 10,
                         background: "#DDE9FF",
@@ -823,7 +816,7 @@ const Teacher: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={()=>handleNext(page)}
+                      onClick={()=>handleNext(pageNumber)}
                       className="btn btn-default btn-sm"
                       style={{
                         background: "#DDE9FF",

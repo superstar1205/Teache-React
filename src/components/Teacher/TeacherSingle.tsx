@@ -90,7 +90,6 @@ const Users: React.FC = (props: object) => {
         if (res.data) {
           setUserData(res.data.data);
           setTotalCount(res.data.count);
-          console.log(res.data.data, "------------count");
         } else {
           setUserData([]);
           setTotalCount(0);
@@ -120,7 +119,6 @@ const Users: React.FC = (props: object) => {
         </option>
       );
     }
-    console.log(Math.ceil(totalCount / 10), "-----------content");
     return content;
   };
   const handleSelectedOption = (e: any) => {

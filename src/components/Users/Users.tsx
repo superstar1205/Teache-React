@@ -24,15 +24,15 @@ const Users: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
   const [showerCount, setShowerCount] = useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pagesNumber, setPagesNumber] = useState(1);
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedStaus, setSelectedStatus] = useState("");
   const [smShow, setSmShow] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const [loader, setLoader] = useState(true);
-  const [pagenumber, setPageNumber] = useState(0);
   var options: any = { year: "numeric", month: "long", day: "numeric" };
-  
-
+  const [itemNumber, setItemNumber] = useState(10);
   const DateFunc = (val: any) => {
     const formatedDate = new Date(parseInt(val)).toLocaleString(
       "en-US",
@@ -43,13 +43,10 @@ const Users: React.FC = () => {
   const handleParentCallback = (childData: any) => {
     if (childData) {
       setShowModal(false);
-      const tempUserData = userData;
-      toast.success("Status Changed");
     } else {
       setShowModal(false);
     }
   };
-
 
   const handleViewParentCallback = (childData: any) => {
     setViewDetail(childData);
@@ -69,7 +66,6 @@ const Users: React.FC = () => {
   const handleDelete = (id: any) => {
     setUserId(id);
     setSmShow(true);
-    console.log("Show id:", id);
   };
   const cancelDelete = () => {
     setUserId(null);
@@ -100,34 +96,19 @@ const Users: React.FC = () => {
   };
 
   const handlePrevious = (page:any) => {
-    if(!page){
+    if(page <= 1){
        page=1;
-       setPageNumber(page-1);
-    } else if(page <= 1){
-       page=1;
-       setPageNumber(page-1);
     }
     else{
       let current_page = page;
       let previous_page = current_page-1;
-      setPageNumber(previous_page-1);
       setSelectedOption(previous_page.toString());
      }
   }
   const handleNext = (page:any) => {
-    if(!page){
-    page=2;
-    setPageNumber(page-1);
-    setSelectedOption(page);
-    } else if(page <= 1){
+    if(page < totalCount/10){
       let current_page = page;
       let next_page = Number(current_page)+1;
-      setPageNumber(next_page-1);
-       setSelectedOption(next_page.toString());
-    } else if(page < totalCount/10){
-      let current_page = page;
-      let next_page = Number(current_page)+1;
-      setPageNumber(next_page-1);
       setSelectedOption(next_page.toString());
     }
   }
@@ -139,14 +120,16 @@ const Users: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/users?page=${selectedOption}&&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&&limit=${itemNumber}&&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
           console.log(res.data);
-          setUserData(res.data.data);
           setTotalCount(res.data.count);
+          setUserData(res.data.data);
+          setPageNumber(res.data.page)
+          setPagesNumber(res.data.pages);
           setShowerCount(res.data.data.length);
         } else {
           setUserData([]);
@@ -157,7 +140,7 @@ const Users: React.FC = () => {
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedStaus]);
+  }, [showModal, searchText, selectedOption, itemNumber, selectedStaus]);
 
   const handleClear = () => {
     setSearchText("");
@@ -170,7 +153,7 @@ const Users: React.FC = () => {
 
   const handleOption = () => {
     let content = [];
-    for (var index = 1; index <= Math.ceil(totalCount / 10); index++) {
+    for (var index = 1; index <= pagesNumber; index++) {
       content.push(
         <option key={index} value={index}>
           {index}
@@ -180,9 +163,11 @@ const Users: React.FC = () => {
     return content;
   };
   const handleSelectedOption = (e: any) => {
-    console.log(e.target.value);
     setSelectedOption(e.target.value);
   };
+  const handleSelectItem = (e: any) => {
+    setItemNumber(e.target.value);
+  }
   const handleStatusSelection = (e: any) => {
     setSelectedStatus(e.target.value);
   };
@@ -207,8 +192,6 @@ const Users: React.FC = () => {
     }, [items, sortConfig]);
   
     const requestSort = (key) => {
-      
-      console.log("SortBy", key);
       let direction = 'ascending';
       if (
         sortConfig &&
@@ -723,10 +706,18 @@ const Users: React.FC = () => {
                       Item per page:
                     </label>
                     <select
-                      value={selectedOption}
-                      onChange={(e) => handleSelectedOption(e)}
+                      value={itemNumber}
+                      onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
@@ -753,7 +744,7 @@ const Users: React.FC = () => {
                 >
                   <div>
                     <label className="totaluser" style={{ color: "#817EB7", marginRight: "20px" }}>
-                      {pagenumber?10*(pagenumber)+showerCount: "10"} of {totalCount}
+                      {(pageNumber-1)*itemNumber + showerCount} of {totalCount}
                     </label>
                     <button
                       style={{
@@ -763,7 +754,7 @@ const Users: React.FC = () => {
                         height: "42px",
                       }}
                       type="button"
-                      onClick={() => handlePrevious(selectedOption)}
+                      onClick={() => handlePrevious(pageNumber)}
                       className="btn btn-default btn-sm"
                     >
                       <i
@@ -774,7 +765,7 @@ const Users: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleNext(selectedOption)}
+                      onClick={() => handleNext(pageNumber)}
                       className="btn btn-default btn-sm"
                       style={{
                         background: "#DDE9FF",

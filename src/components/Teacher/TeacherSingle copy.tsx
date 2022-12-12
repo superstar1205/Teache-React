@@ -102,7 +102,6 @@ const Users: React.FC = (props: object) => {
         if (res.data) {
           setUserData(res.data.data);
           setTotalCount(res.data.count);
-          console.log(res.data.data, "------------count");
         } else {
           setUserData([]);
           setTotalCount(0);

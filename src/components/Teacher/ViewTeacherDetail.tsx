@@ -37,7 +37,6 @@ export default function ViewTeacherDetail(props: any) {
       setTeacherDetail(res.data.data);
     });
   }, [props.userId]);
-  console.log("B data", teacherDetail);
   return (
     <>
       <Modal

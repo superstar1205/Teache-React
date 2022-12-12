@@ -3,7 +3,6 @@ import { Button, Modal, Card } from "react-bootstrap";
 import { Row, Col, Form } from "react-bootstrap";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 export default function ViewUserDetail(props: any) {
-  console.log(props)
   const [show, setShow] = useState(props.viewDetail);
   const [userDetail, setUserDetail]: any[] = useState([]);
   var options: any = {
@@ -59,7 +58,6 @@ export default function ViewUserDetail(props: any) {
       },
     };
     BaseUrl.get(`/users/${props.detail.id}`, axiosConfig).then((res) => {
-      console.log(res.data.data);
       setUserDetail(res.data.data);
     });
   }, [props.detail.id]);

@@ -315,7 +315,7 @@ export default function TeacherTab(props: any) {
                     <div style={{paddingLeft:'10px', paddingTop:'18px'}}>Time & Class</div>
                   </Col>
               </Row>
-              {/* { props.teacherDetail.classes && props.teacherDetail.classes.length >0 ? props.teacherDetail.classes.map(( value: any, index:any)=>(
+              {props.teacherDetail && props.teacherDetail.slots && props.teacherDetail.slots.length >0 ? props.teacherDetail.slots.map(( value: any, index:any)=>(
                 
                 <Row key={index} style={{ padding: "0px 10px 0px 10px" }}>
                 <Col
@@ -334,8 +334,7 @@ export default function TeacherTab(props: any) {
                 <Col style={{ ...colStyle, padding: "20px" }}>
                   { value.teacher_class_timings.map((value_child:any, index_c:any)=>(
                     <p key={index_c}>
-                      <span style={schedule1}>{value_child.time}</span>
-                      <span style={schedule2}>{value_child.type}</span>
+                      <span style={schedule1}>{value_child.time} : {value_child.type}</span>
                     </p>
                   ))}
                 </Col>
@@ -356,7 +355,7 @@ export default function TeacherTab(props: any) {
               </Col>
               <Col style={{ ...colStyle, padding: "20px" }}>
               </Col>
-            </Row> } */}
+            </Row> }
             </Tab.Pane>
             {/* *********************************************************************************************************** */}
           </Tab.Content>
