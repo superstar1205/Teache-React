@@ -20,7 +20,6 @@ const btnStyle: any = {
 
 export default function ViewTeacherDetail(props: any) {
   const [show, setShow] = useState(props.viewDetail);
-  // const [teacherDetail, setTeacherDetail] = useState(props.user);
   const [teacherDetail, setTeacherDetail]: any[] = useState([]);
   const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const handleClose = () => {
@@ -35,6 +34,7 @@ export default function ViewTeacherDetail(props: any) {
     };
     BaseUrl.get(`/teachers/${props.userId}`, axiosConfig).then((res) => {
       setTeacherDetail(res.data.data);
+      console.log(res.data.data);
     });
   }, [props.userId]);
   return (
@@ -71,7 +71,7 @@ export default function ViewTeacherDetail(props: any) {
               <Col md={4} lg={4} style={{ background: "#F9FBFF" }}>
                 <Card.Img
                   variant="top"
-                  src={teacherDetail && teacherDetail.profile_pic}
+                  src={teacherDetail && teacherDetail.profile_pic ? teacherDetail.profile_pic : "/profile.png"}
                   alt="profile"
                   style={{
                     borderRadius: "15px",

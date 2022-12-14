@@ -101,17 +101,17 @@ export function getTeacherBadge(status: string) {
 export function getStatus(status: string) {
   let bg, fontColor, _status;
   switch (status) {
-    case "upcoming":
+    case "Upcoming":
       bg = "#DDE9FF";
       fontColor = "#807CD6";
       _status = "Upcomming";
       break;
-    case "completed":
+    case "Completed":
       bg = "#B8F4DB";
       fontColor = "#246B4D";
       _status = "Completed";
       break;
-    case "cancelled":
+    case "Cancelled":
       bg = "#FFD6D2";
       fontColor = "#A8433A";
       _status = "Cancelled";

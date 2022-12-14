@@ -49,7 +49,7 @@ const TransactionHistory: React.FC = () => {
 //         Authorization:`Bearer ${localStorage.getItem('teache_token')}`
 //       }
 //     }
-//     BaseUrl.get(`/user?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`, axiosConfig).then(res=>{
+//     BaseUrl.get(`/users?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`, axiosConfig).then(res=>{
 //       console.log(res)
 //       setUserData(res.data.data);
 //       setTotalCount(res.data.count);

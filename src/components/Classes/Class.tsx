@@ -58,7 +58,7 @@ const Class: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {

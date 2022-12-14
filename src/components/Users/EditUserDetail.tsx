@@ -7,9 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { getBadge } from "../../utils";
 
 export default function EditUserDetail(props: any) {
-  const [show, setShow] = useState(props.showModal);
+  const [show] = useState(props.showModal);
   const [status, setStaus] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
 
   const handleClose = () => {
     props.handleCallback(false);
@@ -31,13 +30,14 @@ export default function EditUserDetail(props: any) {
       };
       BaseUrl.post("/block-unblock", data, axiosConfig)
         .then((res) => {
-          if(res.data.message === "Status changed to: active"){
-            toast.success(res.data.message);
-          } else{
-            toast.success("Status changed to: block");
+          if(res.status === 200){
+            if(res.data.message === "Status changed to: active"){
+              toast.success(res.data.message);
+            } else{
+              toast.success("Status changed to: block");
+            }
+            props.handleCallback(true);
           }
-          setCurrentStatus(status);
-          props.handleCallback(true);
         })
         .catch((err) => {
           toast.error("Something Went Wrong");

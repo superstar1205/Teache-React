@@ -1,20 +1,15 @@
-import { AutoComplete } from "antd";
-import React, { useState } from "react";
+
+import React from "react";
 import {
   Tab,
-  Tabs,
   Card,
-  Table,
   Row,
   Col,
-  NavItem,
   Nav,
 } from "react-bootstrap";
-import Image from "react-bootstrap/Image";
 import ListGroup from "react-bootstrap/ListGroup";
 
 export default function TeacherTab(props: any) {
-  const [key, setKey] = useState("home");
   const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const fontStyle: any = {
     fontStyle: "normal",
@@ -48,14 +43,6 @@ export default function TeacherTab(props: any) {
 
     color: "#817EB7",
   };
-  const schedule2: any = {
-    padding: "50px",
-    fontWeight: 500,
-    fontSize: "15px",
-    lineHeight: "160%",
-
-    color: "#5D59B4",
-  };
   const colStyle: any = {
     width: "410px",
     height: "299px",
@@ -68,6 +55,7 @@ export default function TeacherTab(props: any) {
 
   const profileQuestion = {
     a: "What are you teaching",
+    aa: "Subcategory",
     b: "Tell users about you and your experience on the subject you want to teach",
     c: "What students should expect on your class",
     d: "Where do you teach classes",
@@ -134,6 +122,15 @@ export default function TeacherTab(props: any) {
                   style={{ border: "none", background: "#F9FBFF" }}
                 >
                   <span style={fontStyle}>{profileQuestion.a}</span>
+                  <Card style={boxStyle}>
+                  {props.teacherDetail.subject_sub_category}
+                  </Card>
+                </ListGroup.Item>
+
+                <ListGroup.Item
+                  style={{ border: "none", background: "#F9FBFF" }}
+                >
+                  <span style={fontStyle}>{profileQuestion.aa}</span>
                   <Card style={boxStyle}>
                   {props.teacherDetail.subject_sub_category}
                   </Card>
@@ -284,7 +281,7 @@ export default function TeacherTab(props: any) {
                         borderRadius: "15px",
                         width: "118px",
                         height: "118px",
-                        margin: "15px 20px 10px 30px",
+                        margin: "10px 10px 10px 10px",
                       }}
                     />
                     ))}

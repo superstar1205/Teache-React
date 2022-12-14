@@ -1,49 +1,58 @@
 import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import ViewUserDetail from "./ViewTeacherDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
-import EditUserDetail from "./EditTeacherDetail";
-import { Col, Row } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import EditUserDetail from "../Users/EditUserDetail";
+import { Col, Button } from "react-bootstrap";
+import { Link, useParams } from "react-router-dom";
 import Image from "react-bootstrap/Image";
 import { getBadge } from "../../utils";
 import { ToastContainer, toast } from "react-toastify";
-import { getStatus } from "../../utils";
-import { Button } from "react-bootstrap";
+import { getStatus, getAbbr } from "../../utils";
 import Chat from "../Chat";
-import EditTeacherDetail from "./EditTeacherDetail";
 import ViewTeacherDetail from "./ViewTeacherDetail";
 
-var options: any = { year: "numeric", month: "long", day: "numeric" };
-var status = ["upcoming", "completed", "cancelled"];
+var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
-const DateFunc = (val: any) => {
-  const formatedDate = new Date(parseInt(val)).toLocaleString("en-US", options);
-  return formatedDate;
-};
+  const DateFunc = (val: any) => {
+    const formatedDate = new Date(parseInt(val)).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  };
+  const DateFuncN = (val: any) => {
+    const formatedDate = new Date(val).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  }
 
 const Users: React.FC = (props: object) => {
+  const { id } = useParams();
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("user", "list"));
   const [showModal, setShowModal] = useState(false);
-  const [viewDetail, setViewDetail] = useState(false);
-  const [userData, setUserData] = useState([]);
-
+  const [classesData, setClassesData] = useState([]);
+  const [teacherData, setTeacherData] : any[] = useState([]);
+  const [teacherClassType, setTeacherClassType] = useState("");
   const [userId, setUserId] = useState("");
   const [userStatus, setUserStatus] = useState("");
-  const [detail, setDetail] = useState();
   const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
   const [selectedStaus, setSelectedStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(true);
-
   const [showModal_, setShowModal_] = useState(false);
-  const [userId_, setUserId_] = useState("");
-  const [userStatus_, setUserStatus_] = useState("");
   const [viewDetail_, setViewDetail_] = useState(false);
-  const [user_, setUser_] = useState("");
+
+  const [itemNumber, setItemNumber] = useState(10);
+  const [showerCount, setShowerCount] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pagesNumber, setPagesNumber] = useState(1);
 
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
@@ -54,27 +63,55 @@ const Users: React.FC = (props: object) => {
   };
 
   const handleParentCallback_ = (childData: any) => {
-    setShowModal_(childData);
-    setUserId_("");
+    if(childData){
+      setShowModal_(false);
+    } else{
+      setShowModal_(false);
+    }
+    //setUserId_("");
   };
 
-  const handleShowModal = (id: any, status: string) => {
+  const handleShowModal = (id: any) => {
     setShowModal(true);
     setUserId(id);
-    setUserStatus(status);
+    // setUserStatus(status);
   };
 
   const handleShowModal_ = (userId: any, userStatus: string) => {
     setShowModal_(true);
-    setUserId_(userId);
-    setUserStatus_(userStatus);
+    setUserId(userId);
+    setUserStatus(userStatus);
   };
 
   const handleViewShowModal_ = (id: any, user: any) => {
+    console.log("ID:", id, "user", user);
     setViewDetail_(true);
-    setUserId_(id);
-    setUser_(user);
+    setUserId(id);
+    // setUser(user);
   };
+
+  const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
+
+  useEffect(() => {
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+    BaseUrl.get(`/teachers/${id}`, axiosConfig).then((res) => {
+      if (res.status === 200){
+        if (res.data) {
+          if (res.data.data){
+            if (res.data.data.user){
+              setTeacherData(res.data.data.user);
+              setTeacherClassType(res.data.data.class.title);
+              console.log("teacher Data", res.data.data);
+            }
+          }
+        }
+      }
+    });
+  }, [showModal_, id]);
 
   useEffect(() => {
     const axiosConfig: any = {
@@ -83,36 +120,61 @@ const Users: React.FC = (props: object) => {
       },
     };
     BaseUrl.get(
-      `/user?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/classes/${id}?limit=${itemNumber}&&page=${page}&search=${searchText}&filter=${selectedStaus}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
-          setUserData(res.data.data);
           setTotalCount(res.data.count);
+          setClassesData(res.data.data);
+          setPageNumber(res.data.page);
+          setPagesNumber(res.data.pages);
+          if(res.data.data){
+            setShowerCount(res.data.data.length);
+          }
+          console.log("here is techer", res.data.data);
         } else {
-          setUserData([]);
+          setClassesData([]);
           setTotalCount(0);
         }
       } else {
-        setUserData([]);
+        setClassesData([]);
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedStaus]);
+  }, [showModal, id, itemNumber, searchText, page, selectedStaus]);
 
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption("");
+    setPage(1);
   };
   const handleSelectedClear = () => {
     setSelectedStatus("");
-    setSelectedOption("");
+    setPage(1);
   };
+
+  const handlePrevious = (page:any) => {
+    if(page <= 1){
+      page = 1;
+      setPage(page)
+    }
+    else{
+      let current_page = page;
+      let previous_page = Number(current_page-1);
+      setPage(previous_page);
+    }
+  }
+  const handleNext = (page:any) => {
+    if(page < pagesNumber){
+      let current_page = page;
+      let next_page = Number(current_page)+1;
+      setPage(next_page);
+    }
+  }
 
   const handleOption = () => {
     let content = [];
-    for (var index = 1; index <= Math.ceil(totalCount / 10); index++) {
+    for (var index = 1; index <= pagesNumber; index++) {
       content.push(
         <option key={index} value={index}>
           {index}
@@ -121,8 +183,11 @@ const Users: React.FC = (props: object) => {
     }
     return content;
   };
+  const handleSelectItem = (e: any) => {
+    setItemNumber(e.target.value);
+  }
   const handleSelectedOption = (e: any) => {
-    setSelectedOption(e.target.value);
+    setPage(e.target.value);
   };
   const handleStatusSelection = (e: any) => {
     setSelectedStatus(e.target.value);
@@ -150,7 +215,7 @@ const Users: React.FC = (props: object) => {
                   <Image
                     className="customAvatar"
                     fluid
-                    src="/teacher.png"
+                    src={teacherData && teacherData.profile_pic ? imageBaseUrl + teacherData.profile_pic : "/profile.png" }
                     style={{
                       borderRadius: "20px",
                       width: "110px",
@@ -238,7 +303,7 @@ const Users: React.FC = (props: object) => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2", background: "white" }}>
-                    {userData && userData.length ? (
+                    {teacherData && 
                       <tr>
                         <td
                           style={{
@@ -246,34 +311,39 @@ const Users: React.FC = (props: object) => {
                             color: "#817EB7",
                           }}
                         >
-                          {userData[0].first_name} {userData[0].last_name}
+                          {teacherData.first_name} {teacherData.last_name}
                         </td>
-                        <td style={{ color: "#817EB7" }}>{userData[0].id}</td>
-                        <td style={{ color: "#817EB7" }}>Abilene</td>
+                        <td style={{ color: "#817EB7" }}>{id}</td>
+                        <td style={{ color: "#817EB7" }}>{ teacherData && teacherData.userlocation &&
+                        teacherData.userlocation.map((value_user:any, index_user:any) => (
+                          value_user.type === "home" ? value_user.city : ""
+                        ) )}</td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
-                          {/* {userData[0].state} */}
-                          AL
+                        { teacherData && teacherData.userlocation &&
+                        teacherData.userlocation.map((value_user:any, index_user:any) => (
+                          value_user.type === "home" ? getAbbr(value_user.state) : ""
+                        ) )}
                         </td>
-                        <td style={{ color: "#817EB7" }}>Cooking</td>
+                        <td style={{ color: "#817EB7" }}>{teacherClassType}</td>
                         <td style={{ color: "#817EB7" }}>
-                          {userData[0].email}
+                          {teacherData.email}
                         </td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
                           <Link
                             style={{ color: "#817EB7" }}
-                            to={`/users/${userData[0].id}`}
+                            to={`/users/${teacherData.id}`}
                           >
-                            5{/* {userData[0].classes} */}
+                            {teacherData.classes_count}
                           </Link>
                         </td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
-                          {getBadge(userData[0].status)}
+                          {teacherData.status === "active" ? getBadge("active") : getBadge("block")}
                         </td>
                         <td style={{ color: "#817EB7" }}>
-                          {DateFunc(userData[0].created_at)}
+                          {DateFunc(teacherData.created_at)}
                         </td>
                         <td style={{ color: "#817EB7" }}>
-                          {DateFunc(userData[0].updated_at)}
+                          {DateFunc(teacherData.updated_at)}
                         </td>
                         <td
                           className="justify-content-center t1"
@@ -292,8 +362,8 @@ const Users: React.FC = (props: object) => {
                                 className="btn btn-primary btn-sm actionBtn"
                                 onClick={() =>
                                   handleViewShowModal_(
-                                    userData[0].id,
-                                    userData[0]
+                                    id,
+                                    teacherData
                                   )
                                 }
                               >
@@ -307,8 +377,8 @@ const Users: React.FC = (props: object) => {
                               <button
                                 onClick={() =>
                                   handleShowModal_(
-                                    userData[0].id,
-                                    userData[0].status
+                                    teacherData.id,
+                                    teacherData.status
                                   )
                                 }
                                 className="btn btn-secondary btn-sm actionBtn2"
@@ -378,7 +448,7 @@ const Users: React.FC = (props: object) => {
                             }}
                             className="btn btn-primary btn-sm"
                             onClick={() =>
-                              handleViewShowModal_(userData[0].id, userData[0])
+                              handleViewShowModal_(id, teacherData)
                             }
                           >
                             <img src="/eye.png" alt="" width={16} height={16} />
@@ -395,8 +465,8 @@ const Users: React.FC = (props: object) => {
                             }}
                             onClick={() =>
                               handleShowModal_(
-                                userData[0].id,
-                                userData[0].status
+                                teacherData.id,
+                                teacherData.status
                               )
                             }
                             className="btn btn-secondary btn-sm"
@@ -457,9 +527,7 @@ const Users: React.FC = (props: object) => {
                           </Button> */}
                         </td>
                       </tr>
-                    ) : (
-                      ""
-                    )}
+                    }
                   </tbody>
                 </table>
               </div>
@@ -500,18 +568,10 @@ const Users: React.FC = (props: object) => {
                       textAlign: "center",
                     }}
                   >
-                    {5}
+                    {totalCount}
                   </span>
                 </div>
               </div>
-              {showModal && (
-                <EditUserDetail
-                  userId={userId}
-                  userStatus={userStatus}
-                  showModal={showModal}
-                  handleCallback={handleParentCallback}
-                />
-              )}
               <div
                 className="table-responsive portlet"
                 style={{
@@ -607,9 +667,9 @@ const Users: React.FC = (props: object) => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {userData &&
-                      userData.length > 0 &&
-                      userData.map((item: any, index) => (
+                    {classesData &&
+                      classesData.length > 0 &&
+                      classesData.map((item: any, index) => (
                         <tr key={index}>
                           <td
                             style={{
@@ -629,15 +689,15 @@ const Users: React.FC = (props: object) => {
                               }}
                               style={{ color: "#817EB7" }}
                             >
-                              {item.first_name} {item.last_name}
+                              {item.name}
                             </Link>
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            <span>245</span>
+                            <span>{item.user_id}</span>
                           </td>
-                          <td style={{ color: "#817EB7" }}>07-08-2022</td>
+                          <td style={{ color: "#817EB7" }}>{DateFuncN(item.class_date)}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {getStatus(status[index % 3])}
+                            {getStatus(item.status)}
                           </td>
                           <td
                             style={{
@@ -646,7 +706,7 @@ const Users: React.FC = (props: object) => {
                               verticalAlign: "middle",
                             }}
                           >
-                            $ 155
+                            $ {item.cost}
                           </td>
                           <td
                             style={{
@@ -655,12 +715,12 @@ const Users: React.FC = (props: object) => {
                               verticalAlign: "middle",
                             }}
                           >
-                            Pending
+                            {item.payment}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Button
                               onClick={() =>
-                                handleShowModal(item.id, item.status)
+                                handleShowModal(item.id)
                               }
                               style={{
                                 background: "none",
@@ -676,14 +736,6 @@ const Users: React.FC = (props: object) => {
                   </tbody>
                 </table>
               </div>
-              {showModal && (
-                <Chat
-                  userId={userId}
-                  userStatus={userStatus}
-                  showModal={showModal}
-                  handleCallback={handleParentCallback}
-                />
-              )}
               <div
                 className="d-flex"
                 style={{ color: "#6460F2", marginTop: "30px" }}
@@ -697,11 +749,18 @@ const Users: React.FC = (props: object) => {
                       Item per page:
                     </label>
                     <select
-                      value={selectedOption}
-                      onChange={(e) => handleSelectedOption(e)}
+                      value={itemNumber}
+                      onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
-                      {handleOption()}
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
                     </select>
                   </div>
                 </div>
@@ -714,7 +773,7 @@ const Users: React.FC = (props: object) => {
                       Move to:
                     </label>
                     <select
-                      value={selectedOption}
+                      value={page}
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
                     >
@@ -734,7 +793,7 @@ const Users: React.FC = (props: object) => {
                       className="totaluser"
                       style={{ color: "#817EB7", marginRight: "20px" }}
                     >
-                      10 of 250
+                      {showerCount + (pageNumber-1)*itemNumber} of {totalCount}
                     </label>
                     <button
                       style={{
@@ -744,6 +803,7 @@ const Users: React.FC = (props: object) => {
                         height: "42px",
                       }}
                       type="button"
+                      onClick={()=>handlePrevious(pageNumber)}
                       className="btn btn-default btn-sm"
                     >
                       <i
@@ -754,6 +814,7 @@ const Users: React.FC = (props: object) => {
 
                     <button
                       type="button"
+                      onClick={()=>handleNext(pageNumber)}
                       className="btn btn-default btn-sm"
                       style={{
                         background: "#DDE9FF",
@@ -767,9 +828,9 @@ const Users: React.FC = (props: object) => {
                       ></i>
                     </button>
                     {showModal_ && (
-                      <EditTeacherDetail
-                        userId={userId_}
-                        userStatus={userStatus_}
+                      <EditUserDetail
+                        userId={userId}
+                        userStatus={userStatus}
                         showModal={showModal_}
                         handleCallback={handleParentCallback_}
                       />
@@ -777,8 +838,17 @@ const Users: React.FC = (props: object) => {
                     {viewDetail_ && (
                       <ViewTeacherDetail
                         // detail={detail}
+                        userId = {userId}
                         viewDetail={viewDetail_}
                         handleViewParentCallback={handleViewParentCallback_}
+                      />
+                    )}
+                    {showModal && (
+                      <Chat
+                        userId={userId}
+                        userStatus={userStatus}
+                        showModal={showModal}
+                        handleCallback={handleParentCallback}
                       />
                     )}
                   </div>

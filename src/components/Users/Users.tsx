@@ -4,9 +4,9 @@ import { updateCurrentPath } from "../../store/actions/root.actions";
 import ViewUserDetail from "./ViewUserDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
-import { FormControl, Col, Row, Modal } from "react-bootstrap";
+import { FormControl, Modal } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getBadge, getAbbr } from "../../utils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -26,20 +26,23 @@ const Users: React.FC = () => {
   const [showerCount, setShowerCount] = useState(1);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState(1);
   const [selectedStaus, setSelectedStatus] = useState("");
   const [smShow, setSmShow] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const [loader, setLoader] = useState(true);
-  var options: any = { year: "numeric", month: "long", day: "numeric" };
-  const [itemNumber, setItemNumber] = useState(10);
+  var options: any = { year: "numeric", month: "numeric", day: "numeric" };
+
   const DateFunc = (val: any) => {
     const formatedDate = new Date(parseInt(val)).toLocaleString(
       "en-US",
       options
     );
-    return formatedDate;
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
   };
+  const [itemNumber, setItemNumber] = useState(10);
+
   const handleParentCallback = (childData: any) => {
     if (childData) {
       setShowModal(false);
@@ -98,18 +101,19 @@ const Users: React.FC = () => {
   const handlePrevious = (page:any) => {
     if(page <= 1){
        page=1;
+       setSelectedOption(page)
     }
     else{
       let current_page = page;
-      let previous_page = current_page-1;
-      setSelectedOption(previous_page.toString());
+      let previous_page = Number(current_page-1);
+      setSelectedOption(previous_page);
      }
   }
   const handleNext = (page:any) => {
-    if(page < totalCount/10){
+    if(page < pagesNumber){
       let current_page = page;
       let next_page = Number(current_page)+1;
-      setSelectedOption(next_page.toString());
+      setSelectedOption(next_page);
     }
   }
 
@@ -144,11 +148,11 @@ const Users: React.FC = () => {
 
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption("");
+    setSelectedOption(1);
   };
   const handleSelectedClear = () => {
     setSelectedStatus("");
-    setSelectedOption("");
+    setSelectedOption(1);
   };
 
   const handleOption = () => {
@@ -491,9 +495,8 @@ const Users: React.FC = () => {
                           </td>
                           <td>
                             <Link
-                              // className="nav-link"
                               to={{
-                                pathname: `/user/${item.id}`,
+                                pathname: `/users/${item.id}`,
                                 state: {
                                   userinfo: item,
                                 },
@@ -512,7 +515,6 @@ const Users: React.FC = () => {
                           <td style={{ color: "#817EB7" }}>{item.email}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
-                              // className="nav-link"
                               to={{
                                 pathname: `/users/${item.id}`,
                                 state: {
@@ -525,7 +527,7 @@ const Users: React.FC = () => {
                                 margin: "auto",
                               }}
                             >
-                              <span>{item.classes_count ? item.classes_count : "2433" }</span>
+                              <span>{item.classes_count ? item.classes_count : 0 }</span>
                             </Link>
                           </td>
                           <td

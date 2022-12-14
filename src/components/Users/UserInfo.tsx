@@ -1,45 +1,56 @@
 import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import ViewUserDetail from "./ViewUserDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
-import { Col, Row, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import ViewUserDetail from "./ViewUserDetail";
+import { Col, Button } from "react-bootstrap";
+import { Link, useParams } from "react-router-dom";
+import { getBadge, getAbbr, getStatus } from "../../utils";
 import Image from "react-bootstrap/Image";
-import { getBadge } from "../../utils";
 import { ToastContainer, toast } from "react-toastify";
-import { getStatus } from "../../utils";
 import Chat from "../Chat";
 
-var options: any = { year: "numeric", month: "long", day: "numeric" };
-var status = ["upcoming", "completed", "cancelled"];
+var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
-const DateFunc = (val: any) => {
-  const formatedDate = new Date(parseInt(val)).toLocaleString("en-US", options);
-  return formatedDate;
-};
+  const DateFunc = (val: any) => {
+    const formatedDate = new Date(parseInt(val)).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  };
+  const DateFuncN = (val: any) => {
+    const formatedDate = new Date(val).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  }
+
 
 const Users: React.FC = (props: object) => {
+  const { id } = useParams();
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("user", "list"));
-  const [showModal, setShowModal] = useState(false);
-  const [viewDetail, setViewDetail] = useState(false);
   const [chatDetail, setChatDetail] = useState(false);
+  const [userIData, setUserIData] : any[] = useState([]);
   const [userData, setUserData] = useState([]);
-
   const [userId, setUserId] = useState("");
   const [userStatus, setUserStatus] = useState("");
   const [detail, setDetail] = useState();
-  const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
-  const [selectedStaus, setSelectedStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(true);
 
-  const handleParentCallback = (childData: any) => {
-    setShowModal(childData);
-  };
+  const [showEModal, setShowModal] = useState(false);
+  const [viewDetail, setViewDetail] = useState(false);
+  const [itemNumber, setItemNumber] = useState(10);
+  const [showerCount, setShowerCount] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pagesNumber, setPagesNumber] = useState(1);
 
   const handleChatParentCallback = (childData: any) => {
     setChatDetail(childData);
@@ -49,15 +60,22 @@ const Users: React.FC = (props: object) => {
     setViewDetail(childData);
   };
 
+  const handleParentCallback = (childData: any) => {
+    if (childData) {
+      setShowModal(false);
+    } else {
+      setShowModal(false);
+    }
+  };
+
   const handleShowModal = (id: any, status: string) => {
-    setShowModal(true);
     setUserId(id);
     setUserStatus(status);
+    setShowModal(true);
   };
   const handleShowChatModal = (id: any) => {
     setChatDetail(true);
-    // setUserId(id);
-    // setUserStatus(status);
+    
   };
   const handleViewShowModal = (item: any) => {
     setViewDetail(true);
@@ -70,14 +88,39 @@ const Users: React.FC = (props: object) => {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
       },
     };
+
+    BaseUrl.get(`/users/${id}`, axiosConfig).then((res) => {
+      console.log(res);
+      if(res.status === 200){
+        if(res.data) {
+          if(res.data.data) {
+            setUserIData(res.data.data);
+            console.log("User Data", res.data.data);
+          }
+        }
+      }
+    })
+  }, [showEModal, id]);
+
+  useEffect(() => {
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
     BaseUrl.get(
-      `/users?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/user-classes/${id}?limit=${itemNumber}&&page=${page}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
-          setUserData(res.data.data);
           setTotalCount(res.data.count);
+          setUserData(res.data.data);
+          setPageNumber(res.data.page);
+          setPagesNumber(res.data.pages);
+          if(res.data.data){
+            setShowerCount(res.data.data.length);
+          }
         } else {
           setUserData([]);
           setTotalCount(0);
@@ -87,11 +130,30 @@ const Users: React.FC = (props: object) => {
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedStaus]);
+  }, [id, itemNumber, page]);
+
+  const handlePrevious = (page:any) => {
+    if(page <= 1){
+      page = 1;
+      setPage(page);
+    }
+    else{
+      let current_page = page;
+      let previous_page = Number(current_page-1);
+      setPage(previous_page);
+    }
+  }
+  const handleNext = (page:any) => {
+    if(page < pagesNumber){
+      let current_page = page;
+      let next_page = Number(current_page)+1;
+      setPage(next_page);
+    }
+  }
 
   const handleOption = () => {
     let content = [];
-    for (var index = 1; index <= Math.ceil(totalCount / 10); index++) {
+    for (var index = 1; index <= pagesNumber; index++) {
       content.push(
         <option key={index} value={index}>
           {index}
@@ -100,11 +162,13 @@ const Users: React.FC = (props: object) => {
     }
     return content;
   };
+
+  const handleSelectItem = (e: any) => {
+    setItemNumber(e.target.value);
+  }
+
   const handleSelectedOption = (e: any) => {
-    setSelectedOption(e.target.value);
-  };
-  const handleStatusSelection = (e: any) => {
-    setSelectedStatus(e.target.value);
+    setPage(e.target.value);
   };
 
   return (
@@ -129,7 +193,7 @@ const Users: React.FC = (props: object) => {
                   <Image
                     className="customAvatar"
                     fluid
-                    src="/userInfo.png"
+                    src={userIData && userIData.profile_pic ? userIData.profile_pic : "/profile.png"}
                     style={{
                       borderRadius: "20px",
                       width: "110px",
@@ -215,7 +279,7 @@ const Users: React.FC = (props: object) => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {userData && userData.length ? (
+                    {userIData && 
                       <tr>
                         <td
                           style={{
@@ -223,33 +287,38 @@ const Users: React.FC = (props: object) => {
                             color: "#817EB7",
                           }}
                         >
-                          {userData[0].first_name} {userData[0].last_name}
+                          {userIData.first_name} {userIData.last_name}
                         </td>
-                        <td style={{ color: "#817EB7" }}>{userData[0].id}</td>
-                        <td style={{ color: "#817EB7" }}>Seattle</td>
+                        <td style={{ color: "#817EB7" }}>{userIData.id}</td>
+                        <td style={{ color: "#817EB7" }}>{ userIData && userIData.userlocation &&
+                        userIData.userlocation.map((value_user:any, index_user:any) => (
+                          value_user.type === "home" ? value_user.city : ""
+                        ) )}</td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
-                          AL
+                        { userIData && userIData.userlocation &&
+                        userIData.userlocation.map((value_user:any, index_user:any) => (
+                          value_user.type === "home" ? getAbbr(value_user.state) : ""
+                        ) )}
                         </td>
                         <td style={{ color: "#817EB7" }}>
-                          {userData[0].email}
+                          {userIData.email}
                         </td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
                           <Link
                             style={{ color: "#817EB7" }}
-                            to={`/users/${userData[0].id}`}
+                            to={`/users/${userIData.id}`}
                           >
-                            2433
-                            {/* {userData[0].classes} */}
+                            {userIData.classes_count ? userIData.classes_count : 0}
                           </Link>
                         </td>
                         <td style={{ color: "#817EB7", textAlign: "center" }}>
-                          {getBadge(userData[0].status)}
+                          {userIData.status === "active" ? getBadge("active") : getBadge("block")}
                         </td>
                         <td style={{ color: "#817EB7" }}>
-                          {DateFunc(userData[0].created_at)}
+                          {DateFunc(userIData.created_at)}
                         </td>
                         <td style={{ color: "#817EB7" }}>
-                          {DateFunc(userData[0].updated_at)}
+                          {DateFunc(userIData.updated_at)}
                         </td>
                         <td
                           className="justify-content-center t1"
@@ -261,15 +330,15 @@ const Users: React.FC = (props: object) => {
                         >
                           <button
                             className="btn btn-primary btn-sm actionBtn"
-                            onClick={() => handleViewShowModal(userData[0])}
+                            onClick={() => handleViewShowModal(userIData)}
                           >
                             <img src="/eye.png" alt="" width={16} height={16} />
                           </button>
                           <button
                             onClick={() =>
                               handleShowModal(
-                                userData[0].id,
-                                userData[0].status
+                                userIData.id,
+                                userIData.status
                               )
                             }
                             className="btn btn-secondary btn-sm actionBtn2"
@@ -316,7 +385,7 @@ const Users: React.FC = (props: object) => {
                             <div id="btn_group">
                               <button
                                 className="btn btn-primary btn-sm actionBtn"
-                                onClick={() => handleViewShowModal(userData[0])}
+                                onClick={() => handleViewShowModal(userIData)}
                               >
                                 <img
                                   src="/eye.png"
@@ -328,8 +397,8 @@ const Users: React.FC = (props: object) => {
                               <button
                                 onClick={() =>
                                   handleShowModal(
-                                    userData[0].id,
-                                    userData[0].status
+                                    userIData.id,
+                                    userIData.status
                                   )
                                 }
                                 className="btn btn-secondary btn-sm actionBtn2"
@@ -370,9 +439,7 @@ const Users: React.FC = (props: object) => {
                           </div>
                         </td>
                       </tr>
-                    ) : (
-                      ""
-                    )}
+                    }
                   </tbody>
                 </table>
               </div>
@@ -401,7 +468,7 @@ const Users: React.FC = (props: object) => {
                       color: "#817EB7",
                     }}
                   >
-                    Total users
+                    Total Classes
                   </span>
                   <span
                     style={{
@@ -412,32 +479,10 @@ const Users: React.FC = (props: object) => {
                       paddingLeft: "20px",
                     }}
                   >
-                    {}
+                    {totalCount}
                   </span>
                 </div>
               </div>
-              {showModal && (
-                <EditUserDetail
-                  userId={userId}
-                  userStatus={userStatus}
-                  showModal={showModal}
-                  handleCallback={handleParentCallback}
-                />
-              )}
-              {chatDetail && (
-                <Chat
-                  userId={userId}
-                  showModal={chatDetail}
-                  handleCallback={handleChatParentCallback}
-                />
-              )}
-              {viewDetail && (
-                <ViewUserDetail
-                  detail={detail}
-                  viewDetail={viewDetail}
-                  handleViewParentCallback={handleViewParentCallback}
-                />
-              )}
               <div
                 className="table-responsive portlet"
                 style={{
@@ -545,7 +590,7 @@ const Users: React.FC = (props: object) => {
                               color: "#817EB7",
                             }}
                           >
-                            {item.first_name} {item.last_name}
+                            {item.class_type}
                           </td>
                           <td style={{ textAlign: "center" }}>
                             <Link
@@ -561,14 +606,14 @@ const Users: React.FC = (props: object) => {
                             </Link>
                           </td>
                           <td style={{ color: "#817EB7" }}>
-                            <span>Tony C</span>
+                            <span>{item.name}</span>
                           </td>
                           <td style={{ color: "#817EB7" }}>
-                            <span>245</span>
+                            <span>{item.teacher_id}</span>
                           </td>
-                          <td style={{ color: "#817EB7" }}>07-08-2022</td>
+                          <td style={{ color: "#817EB7" }}>{DateFuncN(item.class_date)}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {getStatus(status[index % 3])}
+                            {getStatus(item.status)}
                           </td>
                           <td
                             style={{
@@ -577,7 +622,7 @@ const Users: React.FC = (props: object) => {
                               verticalAlign: "middle",
                             }}
                           >
-                            $ 155
+                            ${item.cost}
                           </td>
                           <td
                             style={{
@@ -586,7 +631,7 @@ const Users: React.FC = (props: object) => {
                               verticalAlign: "middle",
                             }}
                           >
-                            Pending
+                            {item.payment}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Button
@@ -618,11 +663,18 @@ const Users: React.FC = (props: object) => {
                       Item per page:
                     </label>
                     <select
-                      value={selectedOption}
-                      onChange={(e) => handleSelectedOption(e)}
+                      value={itemNumber}
+                      onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
-                      {handleOption()}
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
                     </select>
                   </div>
                 </div>
@@ -635,7 +687,7 @@ const Users: React.FC = (props: object) => {
                       Move to:
                     </label>
                     <select
-                      value={selectedOption}
+                      value={page}
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
                     >
@@ -655,7 +707,7 @@ const Users: React.FC = (props: object) => {
                       className="totaluser"
                       style={{ color: "#817EB7", marginRight: "20px" }}
                     >
-                      10 of 250
+                      {showerCount + (pageNumber-1)*itemNumber} of {totalCount}
                     </label>
                     <button
                       style={{
@@ -669,12 +721,14 @@ const Users: React.FC = (props: object) => {
                     >
                       <i
                         style={{ color: "#5D59B4" }}
+                        onClick={()=>handlePrevious(pageNumber)}
                         className="fas fa-angle-left"
                       ></i>
                     </button>
 
                     <button
                       type="button"
+                      onClick={()=>handleNext(pageNumber)}
                       className="btn btn-default btn-sm"
                       style={{
                         background: "#DDE9FF",
@@ -694,6 +748,28 @@ const Users: React.FC = (props: object) => {
           </div>
         </div>
       </div>
+      {showEModal && (
+        <EditUserDetail
+          userId={userId}
+          userStatus={userStatus}
+          showModal={showEModal}
+          handleCallback={handleParentCallback}
+        />
+      )}
+      {viewDetail && (
+        <ViewUserDetail
+          detail={detail}
+          viewDetail={viewDetail}
+          handleViewParentCallback={handleViewParentCallback}
+        />
+      )}
+      {chatDetail && (
+        <Chat
+          userId={userId}
+          showModal={chatDetail}
+          handleCallback={handleChatParentCallback}
+        />
+      )}
     </Fragment>
   );
 };

@@ -1,14 +1,37 @@
-import React, { Fragment, Dispatch, useState } from "react";
+import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { Row, Col, Button, Card, Image } from "react-bootstrap";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
 
+var options: any = { year: "numeric", month: "numeric", day: "numeric" };
+
+  const DateFunc = (val: any) => {
+    const formatedDate = new Date(parseInt(val)).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  };
+  const DateFuncN = (val: any) => {
+    const formatedDate = new Date(val).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  }
+
 const CancelledClass: React.FC = () => {
+  const { id }  = useParams();
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("classId", ""));
+  const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
+  const [classData, setClassData] : any[] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -19,6 +42,25 @@ const CancelledClass: React.FC = () => {
   const handleShowModal = () => {
     setShowModal(true);
   };
+
+  useEffect(() => {
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+
+    BaseUrl.get(`/class/${id}`, axiosConfig).then((res) => {
+      if(res.status === 200){
+        if(res.data) {
+          if(res.data.data) {
+            setClassData(res.data.data);
+            console.log(res.data.data);
+          }
+        }
+      }
+    })
+  }, [id]);
   
   return (
     <Row style={{ margin: "10px" }}>
@@ -35,12 +77,12 @@ const CancelledClass: React.FC = () => {
                 boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
                 borderRadius: "10px",
               }}
-            >
+            > 
               <Row className="no-gutters">
                 <Col md={4} lg={4}>
                   <Card.Img
                     variant="top"
-                    src="/userInfo.png"
+                    src={classData && classData.user_profile_pic ? imageBaseUrl+classData.user_profile_pic : "/profile.png"}
                     style={{
                       borderRadius: "10px",
                       width: "91px",
@@ -73,7 +115,7 @@ const CancelledClass: React.FC = () => {
                             fontWeight: 400,
                           }}
                         >
-                          Tim C
+                          {classData && classData.user_name}
                         </b>
                       </p>
                       <p>
@@ -91,7 +133,7 @@ const CancelledClass: React.FC = () => {
                             to={`/users/${2243}`}
                             style={{ color: "#817EB7" }}
                           >
-                            2243
+                            {classData && classData.user_id}
                           </Link>
                         </b>
                       </p>
@@ -117,7 +159,7 @@ const CancelledClass: React.FC = () => {
                 <Col md={4} lg={4}>
                   <Card.Img
                     variant="top"
-                    src="/intstructor.png"
+                    src={classData && classData.teacher_profile_pic ? imageBaseUrl+classData.teacher_profile_pic : "/profile.png"}
                     style={{
                       borderRadius: "10px",
                       width: "91px",
@@ -149,7 +191,7 @@ const CancelledClass: React.FC = () => {
                             fontWeight: 400,
                           }}
                         >
-                          Lora
+                          {classData && classData.teacher_name}
                         </b>
                       </p>
                       <p>
@@ -170,10 +212,10 @@ const CancelledClass: React.FC = () => {
                           }}
                         >
                           <Link
-                            to={`/instuctors/${2243}`}
+                            to={`/instuctors/${classData && classData.teacher_id}`}
                             style={{ color: "#817EB7" }}
                           >
-                            2243
+                            {classData && classData.teacher_id}
                           </Link>
                         </b>
                       </p>
@@ -295,7 +337,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                Computer Programming
+                {classData && classData.class_type}
               </b>
             </div>
           </Col>
@@ -335,7 +377,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                {getStatus("cancelled")}
+                {classData && getStatus(classData.status)}
               </b>
             </div>
           </Col>
@@ -377,7 +419,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                Flexible
+                {classData && classData.sub_type}
               </b>
             </div>
           </Col>
@@ -417,7 +459,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                Instructor
+                {classData && classData.cancelled_by}
               </b>
             </div>
           </Col>
@@ -459,7 +501,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                01-08-2022
+                {classData && DateFuncN(classData.class_date)}
               </b>
             </div>
           </Col>
@@ -499,7 +541,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                2:40pm
+                {classData && classData.cancellation_time}
               </b>
             </div>
           </Col>
@@ -541,7 +583,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                3:00pm
+                {classData && classData.class_time}
               </b>
             </div>
           </Col>
@@ -581,7 +623,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                Yes
+                {classData && classData.processed_system === "true" ? "Yes" : "No"}
               </b>
             </div>
           </Col>
@@ -623,7 +665,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                60 min
+                {classData && classData.duration} min
               </b>
             </div>
           </Col>
@@ -663,7 +705,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                No
+                {classData && classData.processed_instructor === "true" ? "Yes" : "No"}
               </b>
             </div>
           </Col>
@@ -705,7 +747,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                2
+                {classData && classData.students}
               </b>
             </div>
           </Col>
@@ -745,7 +787,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                On the day - 30%
+                {classData && classData.cancellation_policy}
               </b>
             </div>
           </Col>
@@ -787,7 +829,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                $285.00
+                ${classData && classData.cost}
               </b>
             </div>
           </Col>
@@ -827,7 +869,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                My plans have changed.
+                {classData && classData.cancellation_reason}
               </b>
             </div>
           </Col>

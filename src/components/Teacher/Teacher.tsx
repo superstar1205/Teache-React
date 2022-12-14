@@ -1,8 +1,8 @@
-import React, { Fragment, Dispatch, useMemo, useState, useEffect } from "react";
+import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import BaseUrl from "../../BaseUrl/BaseUrl";
-import { FormControl, Col, Row, Modal, Button } from "react-bootstrap";
+import { FormControl, Modal, } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import Loader from "../../common/components/Loader";
 import BackdropLoader from "../../common/components/BackdropLoader";
@@ -23,7 +23,7 @@ const Teacher: React.FC = () => {
   const [userStatus, setUserStatus] = useState("");
   const [user, setUser] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [page, setPage] = useState("");
+  const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(false);
   const [errorMsg, setErrorMsg] = useState("No Data Found");
   const [smShow, setSmShow] = useState(false);
@@ -36,14 +36,15 @@ const Teacher: React.FC = () => {
   const [teacherData, setTeacherData]: any[] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
-  var options: any = { year: "numeric", month: "long", day: "numeric" };
+  var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
   const DateFunc = (val: any) => {
     const formatedDate = new Date(parseInt(val)).toLocaleString(
       "en-US",
       options
     );
-    return formatedDate;
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
   };
 
   const handleParentCallback = (childData: any) => {
@@ -81,7 +82,7 @@ const Teacher: React.FC = () => {
   };
   const handleClear = () => {
     setSearchText("");
-    setPage("");
+    setPage(1);
   };
   const cancelDelete = () => {
     setTecherId(null);
@@ -94,18 +95,19 @@ const Teacher: React.FC = () => {
   const handlePrevious = (page:any) => {
     if(page <= 1){
       page = 1;
+      setPage(page)
     }
     else{
       let current_page = page;
-      let previous_page = current_page-1;
-      setPage(previous_page.toString());
+      let previous_page = Number(current_page-1);
+      setPage(previous_page);
     }
   }
   const handleNext = (page:any) => {
-    if(page < totalCount/10){
+    if(page < pagesNumber){
       let current_page = page;
       let next_page = Number(current_page)+1;
-      setPage(next_page.toString());
+      setPage(next_page);
     }
   }
 
@@ -161,11 +163,11 @@ const Teacher: React.FC = () => {
       .then((res) => {
         if (res.data) {
           setTotalCount(res.data.count);
+          console.log(res.data);
           setTeacherData(res.data.data);
           setPageNumber(res.data.page);
           setPagesNumber(res.data.pages);
           setShowerCount(res.data.data.length);
-          console.log(res.data)
         } else {
           setTotalCount(0);
           setTeacherData([]);
@@ -575,7 +577,7 @@ const Teacher: React.FC = () => {
                               to={`/instructor/${value.id}`}
                               style={{  color: "#817EB7" }}
                             >
-                              {value.classes_count ? value.classes_count : 12345}
+                              {value.classes_count ? value.classes_count : 0}
                             </Link>
                           </td>
                           <td
