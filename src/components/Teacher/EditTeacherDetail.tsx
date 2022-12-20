@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-import { Button, Modal, Row } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getBadge, getTeacherBadge } from "../../utils";
+import { getTeacherBadge } from "../../utils";
 
 export default function EditUserDetail(props: any) {
-  console.log(props);
-  const [show, setShow] = useState(props.showModal);
+  const [show] = useState(props.showModal);
   const [status, setStaus] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
 
   const handleClose = () => {
     props.handleCallback(false);
@@ -33,9 +31,7 @@ export default function EditUserDetail(props: any) {
       };
       BaseUrl.post("/accept-reject-teacher", data, axiosConfig)
         .then((res) => {
-          
           toast.success(res.data.message);
-          setCurrentStatus(status);
           props.handleCallback(true);
         })
         .catch((err) => {

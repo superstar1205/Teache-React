@@ -16,7 +16,7 @@ import UserInfo from "../Users/UserInfo";
 import CompletedClass from "../Classes/CompletedClass";
 import CancelledClass from "../Classes/CancelledClass";
 import Class from "../Classes/Class";
-import Cooking from "../Cooking/Cooking";
+import Classinfo from "../Classes/Classinfo";
 
 const Admin: React.FC = () => {
   return (
@@ -66,8 +66,8 @@ const Admin: React.FC = () => {
               <Route path={`/message`}>
                 <Message />
               </Route>
-              <Route path={`/cooking`}>
-                <Cooking />
+              <Route path={`/class`}>
+                <Classinfo />
               </Route>
               <Route path={`/transaction-history`}>
                 <TransactionHistory />

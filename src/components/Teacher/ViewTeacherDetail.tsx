@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Button, Modal, Card, Image, Row, Col } from "react-bootstrap";
+import { Button, Modal, Card, Row, Col } from "react-bootstrap";
 import "../../styles/style.css";
 import TeacherTab from "./TeacherTab";
 import BaseUrl from "../../BaseUrl/BaseUrl";
@@ -21,7 +21,6 @@ const btnStyle: any = {
 export default function ViewTeacherDetail(props: any) {
   const [show, setShow] = useState(props.viewDetail);
   const [teacherDetail, setTeacherDetail]: any[] = useState([]);
-  const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const handleClose = () => {
     setShow(false);
     props.handleViewParentCallback(false);

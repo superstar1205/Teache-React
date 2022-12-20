@@ -1,9 +1,9 @@
 import React, { Fragment, Dispatch, useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateCurrentPath } from "../../store/actions/root.actions";
+import { useDispatch } from "react-redux";
 import ViewUserDetail from "./ViewUserDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
+import BackdropLoader from "../../common/components/BackdropLoader";
 import { FormControl, Modal } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import { Link } from "react-router-dom";
@@ -22,15 +22,13 @@ const Users: React.FC = () => {
   const [userStatus, setUserStatus] = useState("");
   const [detail, setDetail] = useState();
   const [searchText, setSearchText] = useState("");
-  const [totalCount, setTotalCount] = useState(1);
-  const [showerCount, setShowerCount] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [showerCount, setShowerCount] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
   const [selectedOption, setSelectedOption] = useState(1);
-  const [selectedStaus, setSelectedStatus] = useState("");
   const [smShow, setSmShow] = useState(false);
-  const [deleteLoader, setDeleteLoader] = useState(false);
-  const [loader, setLoader] = useState(true);
+  const [loader, setLoader] = useState(false);
   var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
   const DateFunc = (val: any) => {
@@ -76,7 +74,7 @@ const Users: React.FC = () => {
   };
 
   const ConfirmDelete = async () => {
-    setDeleteLoader(true);
+    setLoader(true);
     const axiosConfig: any = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
@@ -87,13 +85,13 @@ const Users: React.FC = () => {
       .then((res) => {
         toast.success(res.data.message);
         cancelDelete();
-        setDeleteLoader(false);
+        setLoader(false);
       })
       .catch((err) => {
         if (err.response) {
           toast.error(err.response.data.message);
           cancelDelete();
-          setDeleteLoader(false);
+          setLoader(false);
         }
       });
   };
@@ -118,40 +116,39 @@ const Users: React.FC = () => {
   }
 
   useEffect(() => {
+    setLoader(true);
     const axiosConfig: any = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
       },
     };
     BaseUrl.get(
-      `/users?page=${selectedOption}&&limit=${itemNumber}&&search=${searchText}&filter=${selectedStaus}`,
+      `/users?page=${selectedOption}&&limit=${itemNumber}&&search=${searchText}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
-          console.log(res.data);
+          setLoader(false);
           setTotalCount(res.data.count);
           setUserData(res.data.data);
           setPageNumber(res.data.page)
           setPagesNumber(res.data.pages);
           setShowerCount(res.data.data.length);
         } else {
+          setLoader(false);
           setUserData([]);
           setTotalCount(0);
         }
       } else {
+        setLoader(false);
         setUserData([]);
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, itemNumber, selectedStaus]);
+  }, [showModal, searchText, selectedOption, itemNumber]);
 
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption(1);
-  };
-  const handleSelectedClear = () => {
-    setSelectedStatus("");
     setSelectedOption(1);
   };
 
@@ -172,9 +169,6 @@ const Users: React.FC = () => {
   const handleSelectItem = (e: any) => {
     setItemNumber(e.target.value);
   }
-  const handleStatusSelection = (e: any) => {
-    setSelectedStatus(e.target.value);
-  };
 
   const useSortableData = (items, config = null) => {
     const [sortConfig, setSortConfig] = React.useState(config);
@@ -476,6 +470,12 @@ const Users: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
+                  {loader && 
+                    <tr>
+                      <td colSpan={10}>
+                      <BackdropLoader />
+                      </td>
+                    </tr>}
                     {items &&
                       items.length > 0 &&
                       items.map((item: any, index) => (

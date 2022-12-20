@@ -4,7 +4,6 @@ import { updateCurrentPath } from "../../store/actions/root.actions";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { FormControl, Modal, } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
-import Loader from "../../common/components/Loader";
 import BackdropLoader from "../../common/components/BackdropLoader";
 import { toast, ToastContainer } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -24,15 +23,12 @@ const Teacher: React.FC = () => {
   const [user, setUser] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
-  const [loader, setLoader] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("No Data Found");
   const [smShow, setSmShow] = useState(false);
   const [techerId, setTecherId] = useState(null);
-  const [deleteLoader, setDeleteLoader] = useState(false);
+  const [loader, setLoader] = useState(false);
   const [totalCount, setTotalCount] = useState(1);
   const [showerCount, setShowerCount] = useState(1);
   const [itemNumber, setItemNumber] = useState(10);
-  const [selectedStatus, setSelectedStatus] = useState("");
   const [teacherData, setTeacherData]: any[] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
@@ -73,9 +69,6 @@ const Teacher: React.FC = () => {
     setUser(user);
   };
 
-  const handleStatusChange = (Event: any) => {
-    setSelectedStatus(Event.target.value);
-  };
   const handleDelete = (id: any) => {
     setTecherId(id);
     setSmShow(true);
@@ -123,7 +116,7 @@ const Teacher: React.FC = () => {
     return content;
   };
   const ConfirmDelete = async () => {
-    setDeleteLoader(true);
+    setLoader(true);
     const axiosConfig: any = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
@@ -134,14 +127,14 @@ const Teacher: React.FC = () => {
       .then((res) => {
         toast.success(res.data.message);
         cancelDelete();
-        setDeleteLoader(false);
+        setLoader(false);
         getTeachers();
       })
       .catch((err) => {
         if (err.response) {
           toast.error(err.response.data.message);
           cancelDelete();
-          setDeleteLoader(false);
+          setLoader(false);
         }
       });
   };
@@ -157,13 +150,13 @@ const Teacher: React.FC = () => {
     };
 
     BaseUrl.get(
-      `/teachers?page=${page}&limit=${itemNumber}&search=${searchText}&filter=${selectedStatus}`,
+      `/teachers?page=${page}&limit=${itemNumber}&search=${searchText}`,
       axiosConfig
     )
       .then((res) => {
         if (res.data) {
+          setLoader(false);
           setTotalCount(res.data.count);
-          console.log(res.data);
           setTeacherData(res.data.data);
           setPageNumber(res.data.page);
           setPagesNumber(res.data.pages);
@@ -176,7 +169,7 @@ const Teacher: React.FC = () => {
       })
       .catch((err) => {
         if (err.response) {
-          setErrorMsg(err.response.data.message);
+          toast.error(err.response.data.message);
           setTeacherData([]);
           setLoader(false);
         }
@@ -184,7 +177,7 @@ const Teacher: React.FC = () => {
   };
   useEffect(() => {
     getTeachers();
-  }, [showModal, searchText, selectedStatus, itemNumber, page]);
+  }, [showModal, searchText, itemNumber, page]);
 
   const useSortableData = (items, config = null) => {
     const [sortConfig, setSortConfig] = React.useState(config);
@@ -231,7 +224,6 @@ const Teacher: React.FC = () => {
   return (
     <Fragment>
       <ToastContainer />
-      {deleteLoader && <BackdropLoader />}
       <div className="row">
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
           <div
@@ -521,6 +513,12 @@ const Teacher: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
+                    {loader && 
+                    <tr>
+                      <td colSpan={11}>
+                      <BackdropLoader />
+                      </td>
+                    </tr>}
                     { items &&
                       items.length > 0 &&
                       items.map((value: any, index: number) => (

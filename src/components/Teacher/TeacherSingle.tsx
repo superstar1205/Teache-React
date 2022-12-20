@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "../Users/EditUserDetail";
-import { Col, Button } from "react-bootstrap";
+import { Col, Button, Modal } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import Image from "react-bootstrap/Image";
 import { getBadge } from "../../utils";
@@ -11,6 +11,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { getStatus, getAbbr } from "../../utils";
 import Chat from "../Chat";
 import ViewTeacherDetail from "./ViewTeacherDetail";
+import BackdropLoader from "../../common/components/BackdropLoader";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
@@ -41,14 +42,12 @@ const Users: React.FC = (props: object) => {
   const [teacherClassType, setTeacherClassType] = useState("");
   const [userId, setUserId] = useState("");
   const [userStatus, setUserStatus] = useState("");
-  const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
-  const [selectedStaus, setSelectedStatus] = useState("");
   const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(true);
   const [showModal_, setShowModal_] = useState(false);
   const [viewDetail_, setViewDetail_] = useState(false);
-
+  const [showDelete, setDeleteModal] =useState(false);
   const [itemNumber, setItemNumber] = useState(10);
   const [showerCount, setShowerCount] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
@@ -68,13 +67,11 @@ const Users: React.FC = (props: object) => {
     } else{
       setShowModal_(false);
     }
-    //setUserId_("");
   };
 
   const handleShowModal = (id: any) => {
     setShowModal(true);
     setUserId(id);
-    // setUserStatus(status);
   };
 
   const handleShowModal_ = (userId: any, userStatus: string) => {
@@ -87,7 +84,39 @@ const Users: React.FC = (props: object) => {
     console.log("ID:", id, "user", user);
     setViewDetail_(true);
     setUserId(id);
-    // setUser(user);
+  };
+
+  const handleDeleteModal = (id: any) => {
+    setUserId(id);
+    setDeleteModal(true);
+  }
+
+  const ConfirmDelete = (id: any) => {
+    setDeleteModal(false);
+    setLoader(true);
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+
+    BaseUrl.delete(`/delete-user/${userId}`, axiosConfig)
+      .then((res) => {
+        toast.success(res.data.message);
+        cancelDelete();
+        setLoader(false);
+      })
+      .catch((err) => {
+        if (err.response) {
+          toast.error(err.response.data.message);
+          cancelDelete();
+          setLoader(false);
+        }
+      });
+  };
+  const cancelDelete = () => {
+    setUserId(null);
+    setDeleteModal(false);
   };
 
   const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
@@ -105,24 +134,34 @@ const Users: React.FC = (props: object) => {
             if (res.data.data.user){
               setTeacherData(res.data.data.user);
               setTeacherClassType(res.data.data.class.title);
-              console.log("teacher Data", res.data.data);
             }
           }
-        }
+        } else {
+        setTotalCount(0);
+        setTeacherData([]);
+      }
+    }
+    }).catch((err) => {
+      if (err.response) {
+        setLoader(false);
+        setTeacherData([]);
+        setLoader(false);
       }
     });
   }, [showModal_, id]);
 
   useEffect(() => {
+    setLoader(true);
     const axiosConfig: any = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
       },
     };
     BaseUrl.get(
-      `/classes/${id}?limit=${itemNumber}&&page=${page}&search=${searchText}&filter=${selectedStaus}`,
+      `/classes/${id}?limit=${itemNumber}&&page=${page}`,
       axiosConfig
     ).then((res) => {
+      setLoader(false);
       if (res.status === 200) {
         if (res.data) {
           setTotalCount(res.data.count);
@@ -132,7 +171,6 @@ const Users: React.FC = (props: object) => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
-          console.log("here is techer", res.data.data);
         } else {
           setClassesData([]);
           setTotalCount(0);
@@ -142,16 +180,7 @@ const Users: React.FC = (props: object) => {
         setTotalCount(0);
       }
     });
-  }, [showModal, id, itemNumber, searchText, page, selectedStaus]);
-
-  const handleClear = () => {
-    setSearchText("");
-    setPage(1);
-  };
-  const handleSelectedClear = () => {
-    setSelectedStatus("");
-    setPage(1);
-  };
+  }, [id, itemNumber, page]);
 
   const handlePrevious = (page:any) => {
     if(page <= 1){
@@ -189,13 +218,40 @@ const Users: React.FC = (props: object) => {
   const handleSelectedOption = (e: any) => {
     setPage(e.target.value);
   };
-  const handleStatusSelection = (e: any) => {
-    setSelectedStatus(e.target.value);
-  };
 
   return (
     <Fragment>
       <ToastContainer />
+      <Modal
+        centered
+        show={showDelete}
+        backdrop="static"
+        onHide={() => setDeleteModal(false)}
+        aria-labelledby="example-modal-sizes-title-lg"
+      >
+        <div className="p-3">
+          <Modal.Title id="example-modal-sizes-title-sm">
+            Are you sure to delete this teacher ?
+          </Modal.Title>
+
+          <Modal.Body>
+            <div className=" d-flex flex-row w-100  mt-2">
+              <button
+                onClick={cancelDelete}
+                className="btn btn-danger  mr-3 btn-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={ConfirmDelete}
+                className="btn btn-primary btn-sm"
+              >
+                Confirm
+              </button>
+            </div>
+          </Modal.Body>
+        </div>
+      </Modal>
       <div className="row" style={{ background: "#F3F7FF" }}>
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
           <div
@@ -396,7 +452,11 @@ const Users: React.FC = (props: object) => {
                                   />
                                 </svg>
                               </button>
-                              <button className="btn btn-danger btn-sm actionBtn2">
+                              <button
+                              onClick={()=> handleDeleteModal(
+                                teacherData.id
+                              )} 
+                              className="btn btn-danger btn-sm actionBtn2">
                                 {/* <i className="fas fa-trash"></i> */}
                                 <svg
                                   width="17"
@@ -485,6 +545,9 @@ const Users: React.FC = (props: object) => {
                             </svg>
                           </button>
                           <button
+                          onClick={()=> handleDeleteModal(
+                            teacherData.id
+                          )} 
                             style={{
                               marginRight: 3,
                               background: "#DDE9FF",
@@ -514,17 +577,6 @@ const Users: React.FC = (props: object) => {
                               />
                             </svg>
                           </button>
-                          {/* <Button
-                            // variant="light"
-                            style={{
-                              color: "#817EB7",
-                              background: "#F3F7FF",
-                              border: "none",
-                            }}
-                            onClick={() => handleViewShowModal("item")}
-                          >
-                            <i className="fas fa-ellipsis-h"></i>
-                          </Button> */}
                         </td>
                       </tr>
                     }
@@ -667,6 +719,12 @@ const Users: React.FC = (props: object) => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
+                  {loader && 
+                    <tr>
+                      <td colSpan={8}>
+                      <BackdropLoader />
+                      </td>
+                    </tr>}
                     {classesData &&
                       classesData.length > 0 &&
                       classesData.map((item: any, index) => (

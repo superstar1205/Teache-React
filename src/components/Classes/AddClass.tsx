@@ -8,11 +8,17 @@ import "react-toastify/dist/ReactToastify.css";
 export default function AddClass(props: any) {
   const [show, setShow] = useState(props.showModal);
   const [status, setStaus] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState();
+  const [fileData, setFileData] = useState("");
+
+  const handlFileChange = (e) =>{
+    setFile(e.target.value);
+  }
 
   const handleUpload = () => {
+    // setFileData();
     console.log(inputRef.current.click());
   };
 
@@ -33,7 +39,6 @@ export default function AddClass(props: any) {
       BaseUrl.post("/block-unblock", data)
         .then((res) => {
           toast.success("Status Changed");
-          setCurrentStatus(status);
         })
         .catch((err) => {
           toast.error("Something Went Wrong");
@@ -126,6 +131,7 @@ export default function AddClass(props: any) {
                   />
                 </div>
                 <div style={{ textAlign: "center" }}>
+
                   <input
                     ref={inputRef}
                     className="d-none"
@@ -184,6 +190,7 @@ export default function AddClass(props: any) {
                   <input
                     ref={inputRef}
                     className="d-none"
+                    onChange={handlFileChange}
                     type="file"
                     accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
                   />

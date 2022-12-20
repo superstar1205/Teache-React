@@ -4,12 +4,13 @@ import { updateCurrentPath } from "../../store/actions/root.actions";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
 import ViewUserDetail from "./ViewUserDetail";
-import { Col, Button } from "react-bootstrap";
+import { Col, Button, Modal } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import { getBadge, getAbbr, getStatus } from "../../utils";
 import Image from "react-bootstrap/Image";
 import { ToastContainer, toast } from "react-toastify";
 import Chat from "../Chat";
+import BackdropLoader from "../../common/components/BackdropLoader";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
@@ -44,7 +45,7 @@ const Users: React.FC = (props: object) => {
   const [totalCount, setTotalCount] = useState(1);
   const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(true);
-
+  const [showDelete, setDeleteModal] =useState(false);
   const [showEModal, setShowModal] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
   const [itemNumber, setItemNumber] = useState(10);
@@ -82,6 +83,39 @@ const Users: React.FC = (props: object) => {
     setDetail(item);
   };
 
+  const handleDeleteModal = (id: any) => {
+    setUserId(id);
+    setDeleteModal(true);
+  }
+
+  const ConfirmDelete = (id: any) => {
+    setDeleteModal(false);
+    setLoader(true);
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+
+    BaseUrl.delete(`/delete-user/${userId}`, axiosConfig)
+      .then((res) => {
+        toast.success(res.data.message);
+        cancelDelete();
+        setLoader(false);
+      })
+      .catch((err) => {
+        if (err.response) {
+          toast.error(err.response.data.message);
+          cancelDelete();
+          setLoader(false);
+        }
+      });
+  };
+  const cancelDelete = () => {
+    setUserId(null);
+    setDeleteModal(false);
+  };
+
   useEffect(() => {
     const axiosConfig: any = {
       headers: {
@@ -90,19 +124,17 @@ const Users: React.FC = (props: object) => {
     };
 
     BaseUrl.get(`/users/${id}`, axiosConfig).then((res) => {
-      console.log(res);
       if(res.status === 200){
         if(res.data) {
           if(res.data.data) {
             setUserIData(res.data.data);
-            console.log("User Data", res.data.data);
           }
         }
-      }
-    })
+      }});
   }, [showEModal, id]);
 
   useEffect(() => {
+    setLoader(true);
     const axiosConfig: any = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
@@ -112,6 +144,7 @@ const Users: React.FC = (props: object) => {
       `/user-classes/${id}?limit=${itemNumber}&&page=${page}`,
       axiosConfig
     ).then((res) => {
+      setLoader(false);
       if (res.status === 200) {
         if (res.data) {
           setTotalCount(res.data.count);
@@ -121,6 +154,7 @@ const Users: React.FC = (props: object) => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
+          
         } else {
           setUserData([]);
           setTotalCount(0);
@@ -130,7 +164,7 @@ const Users: React.FC = (props: object) => {
         setTotalCount(0);
       }
     });
-  }, [id, itemNumber, page]);
+  }, [id, showEModal, itemNumber, page]);
 
   const handlePrevious = (page:any) => {
     if(page <= 1){
@@ -174,6 +208,36 @@ const Users: React.FC = (props: object) => {
   return (
     <Fragment>
       <ToastContainer />
+      <Modal
+        centered
+        show={showDelete}
+        backdrop="static"
+        onHide={() => setDeleteModal(false)}
+        aria-labelledby="example-modal-sizes-title-lg"
+      >
+        <div className="p-3">
+          <Modal.Title id="example-modal-sizes-title-sm">
+            Are you sure to delete this teacher ?
+          </Modal.Title>
+
+          <Modal.Body>
+            <div className=" d-flex flex-row w-100  mt-2">
+              <button
+                onClick={cancelDelete}
+                className="btn btn-danger  mr-3 btn-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={ConfirmDelete}
+                className="btn btn-primary btn-sm"
+              >
+                Confirm
+              </button>
+            </div>
+          </Modal.Body>
+        </div>
+      </Modal>
       <div className="row" style={{ background: "#F3F7FF" }}>
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
           <div
@@ -356,7 +420,11 @@ const Users: React.FC = (props: object) => {
                               />
                             </svg>
                           </button>
-                          <button className="btn btn-danger btn-sm actionBtn2">
+                          <button 
+                            onClick={()=> handleDeleteModal(
+                              userIData.id
+                            )} 
+                            className="btn btn-danger btn-sm actionBtn2">
                             {/* <i className="fas fa-trash"></i> */}
                             <svg
                               width="17"
@@ -580,6 +648,12 @@ const Users: React.FC = (props: object) => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
+                  {loader && 
+                    <tr>
+                      <td colSpan={9}>
+                      <BackdropLoader />
+                      </td>
+                    </tr>}
                     {userData &&
                       userData.length > 0 &&
                       userData.map((item: any, index) => (

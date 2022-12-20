@@ -4,19 +4,14 @@ import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { Row, Col, Button, Card, Image } from "react-bootstrap";
+import Form from "react-bootstrap/Form";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
+import { ToastContainer, toast } from "react-toastify";
+import { setConstantValue } from "typescript";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
-  const DateFunc = (val: any) => {
-    const formatedDate = new Date(parseInt(val)).toLocaleString(
-      "en-US",
-      options
-    );
-    let dateType = formatedDate.replaceAll("/", "-")
-    return dateType;
-  };
   const DateFuncN = (val: any) => {
     const formatedDate = new Date(val).toLocaleString(
       "en-US",
@@ -32,9 +27,13 @@ const CancelledClass: React.FC = () => {
   dispatch(updateCurrentPath("classId", ""));
   const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
   const [classData, setClassData] : any[] = useState([]);
-
+  const [totalCost, setTotalCost] =useState(0);
+  const [paymentStatus, setPaymentStatus] = useState(0);
+  const [payment, setPayment] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
+  const [refundUser, setRefundUser] = useState(0);
+  const [releaseInstructor, setReleaseInstructor] = useState(0);
+  const [processed, setProcessed] = useState(0);
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
   };
@@ -55,14 +54,57 @@ const CancelledClass: React.FC = () => {
         if(res.data) {
           if(res.data.data) {
             setClassData(res.data.data);
+            setTotalCost(res.data.data.cost);
+            if(res.data.data.processed_instructor === true){
+              setPaymentStatus(1);
+            } else {
+              if(res.data.data.processed_system === true){
+                setPaymentStatus(2)
+              } else{
+                setPaymentStatus(0);
+              }
+            }
             console.log(res.data.data);
           }
         }
       }
     })
   }, [id]);
+
+  const handlePayment = (()=> {
+    setPayment(true);
+  });
+  const handleClose = (()=> {
+    setPayment(false);
+    setRefundUser(0);
+    setReleaseInstructor(0);
+  });
+  const handleSubmitStatus = (()=> {
+    if(refundUser === 1)
+    {
+      setPayment(false);
+      setProcessed(1);
+      setPaymentStatus(3);
+    } else if(releaseInstructor === 1) {
+      setPayment(false);
+      setProcessed(2);
+      setPaymentStatus(3);
+    } else{
+      toast.error("Select one!");
+    }
+  });
+  const handleRefundUser = () => {
+      setRefundUser(1);
+      setReleaseInstructor(0);
+  }
+  const handleReleaseInstructor = () => {
+      setReleaseInstructor(1);
+      setRefundUser(0);
+  }
   
   return (
+  <Fragment>
+    <ToastContainer />
     <Row style={{ margin: "10px" }}>
       <Col md={{ span: 8 }} style={{ marginTop: "25px" }}>
         <Row>
@@ -72,8 +114,6 @@ const CancelledClass: React.FC = () => {
                 width: "100%",
                 border: "none",
                 background: "#FFFFFF",
-                /* shadow */
-
                 boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
                 borderRadius: "10px",
               }}
@@ -96,9 +136,11 @@ const CancelledClass: React.FC = () => {
                     <Card.Text
                       style={{
                         paddingTop: "10px",
+                        fontSize: "15px",
+                            color: "#6460F2",
+                            marginRight: "10px",
                       }}
                     >
-                      <p>
                         <b
                           style={{
                             fontSize: "15px",
@@ -116,9 +158,7 @@ const CancelledClass: React.FC = () => {
                           }}
                         >
                           {classData && classData.user_name}
-                        </b>
-                      </p>
-                      <p>
+                        </b><br></br><br></br>
                         <b
                           style={{
                             fontSize: "15px",
@@ -136,7 +176,6 @@ const CancelledClass: React.FC = () => {
                             {classData && classData.user_id}
                           </Link>
                         </b>
-                      </p>
                     </Card.Text>
                   </Card.Body>
                 </Col>
@@ -623,7 +662,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                {classData && classData.processed_system === "true" ? "Yes" : "No"}
+                {classData && classData.processed_system === true ? "Yes" : "No"}
               </b>
             </div>
           </Col>
@@ -705,7 +744,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                {classData && classData.processed_instructor === "true" ? "Yes" : "No"}
+                {classData && classData.processed_instructor === true ? "Yes" : "No"}
               </b>
             </div>
           </Col>
@@ -875,7 +914,9 @@ const CancelledClass: React.FC = () => {
           </Col>
         </Row>
       </Col>
+      {/* ==================================================================================================================================================================================================== */}
       <Col md={{ span: 4 }}>
+      { paymentStatus === 1 && 
         <div
           style={{
             width: "350px",
@@ -926,7 +967,7 @@ const CancelledClass: React.FC = () => {
                   fontWeight: 500,
                 }}
               >
-                $185
+                ${classData.refund_amount}
               </b>
             </p>
             <p>
@@ -937,7 +978,7 @@ const CancelledClass: React.FC = () => {
                   marginRight: "10px",
                 }}
               >
-                Refund to instructor:
+                Released to instructor:
               </b>{" "}
               <b
                 style={{
@@ -947,16 +988,186 @@ const CancelledClass: React.FC = () => {
                   marginLeft: "15px",
                 }}
               >
-                $100
+                ${classData.cost}
               </b>
             </p>
           </div>
+        </div> }
+        { paymentStatus === 2 && 
+          <div
+          style={{
+            width: "360px",
+            // height: "187px",
+            background: "#DDE9FF",
+            borderRadius: "15px",
+            marginTop: "25px",
+            paddingBottom: "25px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "Poppins",
+              fontStyle: "normal",
+              fontWeight: 600,
+              fontSize: "19px",
+              lineHeight: "160%",
+              paddingTop: "13%",
+              textAlign: "center",
+              color: "#6460F2",
+              marginBottom: "10px",
+            }}
+          >
+            Teache Received : {totalCost}
+          </p>
+          
+            <Button
+              style={{
+                marginTop: "15px",
+                background: "#6460F2",
+                borderRadius: "8px",
+                border: "none",
+                fontWeight: 600,
+                height: "40px",
+                fontSize: "16px",
+              }}
+              onClick = {handlePayment}
+            >
+              Hold Payment
+            </Button>
+        </div> 
+      }
+      { payment === true &&
+        <div
+        style={{
+          width: "360px",
+          color: "#6460F2",
+          marginTop: "25px",
+          paddingTop: "30px",
+          paddingLeft: "30px",
+          paddingRight: "30px",
+          paddingBottom: "20px",
+          background: "#DDE9FF",
+          borderRadius:'10px'
+        }}
+      >
+        <Row>
+          <Button
+          onClick={handleRefundUser}
+          style={{
+            backgroundColor: "#6460F2",
+            color: "white",
+            border: "none",
+            fontWeight: 600,
+            fontSize: "16px",
+            lineHeight: "160%",
+            borderRadius: "8px",
+            height: "40px",
+            marginBottom: "16px"
+          }}
+          >Refund to user</Button>
+        </Row>
+        <Row>
+        <Button
+          onClick={handleReleaseInstructor}
+          style={{
+            backgroundColor: "white",
+            color: "#6460F2",
+            border: "none",
+            fontWeight: 600,
+            fontSize: "16px",
+            lineHeight: "160%",
+            borderRadius: "8px",
+            height: "40px",
+            marginBottom: "16px"
+          }}
+          >Release to Instructor</Button>
+        </Row>
+        <div style={{ textAlign: "right", marginTop: "20px" }}>
+          <Button
+            variant="secondary"
+            onClick={handleClose}
+            style={{
+              backgroundColor: "#C4C2E9",
+              color: "#807CD6",
+              border: "none",
+              fontWeight: 600,
+              fontSize: "16px",
+              lineHeight: "160%",
+              borderRadius: "8px",
+              height: "50px",
+              marginRight: "10px",
+            }}
+          >
+            Close
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSubmitStatus}
+            style={{
+              backgroundColor: "#6460F2",
+              color: "white",
+              border: "none",
+              fontWeight: 600,
+              fontSize: "16px",
+              lineHeight: "160%",
+              borderRadius: "8px",
+              height: "50px",
+            }}
+          >
+            Save Changes
+          </Button>
         </div>
+      </div>
+      }
+      { paymentStatus === 3 ?
+        <div
+        style={{
+          width: "360px",
+          // height: "187px",
+          background: "#DDE9FF",
+          borderRadius: "15px",
+          marginTop: "25px",
+          paddingBottom: "15px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "Poppins",
+            fontStyle: "normal",
+            fontWeight: 600,
+            fontSize: "24px",
+            lineHeight: "160%",
+            paddingTop: "25px",
+            textAlign: "center",
+            color: "#6460F2",
+          }}
+        >
+          { processed && processed ===1 ? "Refunded to User" : "Released to Instructor"}
+        </p>
+        <p
+          style={{
+            fontFamily: "Poppins",
+            fontStyle: "normal",
+            fontWeight: 600,
+            fontSize: "19px",
+            lineHeight: "160%",
+            paddingTop: "16px",
+            textAlign: "center",
+            color: "#6460F2",
+          }}
+        >
+          Cost: {totalCost}
+        </p>
+      </div> : ""
+      }
       </Col>
       {showModal && (
         <Chat showModal={showModal} handleCallback={handleParentCallback} />
       )}
     </Row>
+    </Fragment>
   );
 };
 

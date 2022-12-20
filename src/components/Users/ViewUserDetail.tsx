@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Button, Modal, Card } from "react-bootstrap";
-import { Row, Col, Form } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 export default function ViewUserDetail(props: any) {
   const [show, setShow] = useState(props.viewDetail);
