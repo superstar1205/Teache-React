@@ -1,9 +1,10 @@
-import React, { Fragment, Dispatch, useState, useEffect } from "react";
+import React, { Fragment, Dispatch, useState, useMemo, useEffect } from "react";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { FormControl, Col, Row } from "react-bootstrap";
+import BackdropLoader from "../../common/components/BackdropLoader";
 import InputGroup from "react-bootstrap/InputGroup";
 import { Button } from "react-bootstrap";
 import ToggleButton from "react-bootstrap/ToggleButton";
@@ -11,23 +12,20 @@ import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 import { AiOutlineCaretDown } from "react-icons/ai";
 import Chat from "../Chat";
 
-import { Tab, Tabs, Card, Table, NavItem, Nav } from "react-bootstrap";
-
-const payment = ["Pending", "Processed", "Cancelled"];
-
 const Issues: React.FC = () => {
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("user", "list"));
   const [showModal, setShowModal] = useState(false);
-  const [viewDetail, setViewDetail] = useState(false);
   const [btnStatus1, setbtnStatus1] = useState(1);
   const [btnStatus2, setbtnStatus2] = useState(1);
 
-  const [userData, setUserData] = useState([]);
   const [issueData, setIssueData] = useState([]);
   const [userId, setUserId] = useState("");
-  const [userStatus, setUserStatus] = useState("");
-  const [detail, setDetail] = useState();
+  const [teacherId, setTeacherId] =useState("");
+  const [classId, setClassId] =useState("");
+  const [userName, setUserName] =useState("");
+  const [teacherName, setTeacherName] =useState("");
+  const [issueStatus, setIssueStatus] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(1);
   const [selectedOption, setSelectedOption] = useState(0);
@@ -37,66 +35,45 @@ const Issues: React.FC = () => {
   const [pagesNumber, setPagesNumber] = useState(1);
   const [itemNumber, setItemNumber] = useState(10);
 
+  var options: any = { year: "numeric", month: "numeric", day: "numeric" };
+
+  const DateFunc = (val: any) => {
+    const formatedDate = new Date(parseInt(val)).toLocaleString(
+      "en-US",
+      options
+    );
+    let dateType = formatedDate.replaceAll("/", "-")
+    return dateType;
+  };
+
   const handleBtnStatus1 = (status: number) => {
     setbtnStatus1(status);
   };
   const handleBtnStatus2 = (status: number) => {
     setbtnStatus2(status);
+    if (status === 2){
+      setIssueStatus(true);
+    } else{
+      setIssueStatus(false);
+    }
   };
 
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
   };
 
-  const handleViewParentCallback = (childData: any) => {
-    setViewDetail(childData);
-  };
 
-  const handleShowModal = (id: any, status: string) => {
+  const handleShowModal = (id: any, user_id: string, teacher_id: string, user_name: string, teacher_name: string) => {
     setShowModal(true);
-    setUserId(id);
-    setUserStatus(status);
+    setUserId(user_id);
+    setTeacherId(teacher_id);
+    setClassId(id);
+    setUserName(user_name);
+    setTeacherName(teacher_name);
   };
-
-  const handleViewShowModal = (item: any) => {
-    setViewDetail(true);
-    setDetail(item);
-  };
-
-  useEffect(() => {
-    const axiosConfig: any = {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
-      },
-    };
-    BaseUrl.get(
-      `/users?limit=${itemNumber}&page=${selectedOption}&search=${searchText}`,
-      axiosConfig
-    ).then((res) => {
-      if (res.status === 200) {
-        if (res.data) {
-          setLoader(false);
-          setTotalCount(res.data.count);
-          setUserData(res.data.data);
-          setPageNumber(res.data.page)
-          setPagesNumber(res.data.pages);
-          setShowerCount(res.data.data.length);
-        } else {
-          setUserData([]);
-          setTotalCount(0);
-        }
-      } else {
-        setUserData([]);
-        setTotalCount(0);
-      }
-    });
-  }, [showModal, itemNumber, searchText, selectedOption]);
 
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption(0);
-  };
-  const handleSelectedClear = () => {
     setSelectedOption(0);
   };
 
@@ -138,6 +115,82 @@ const Issues: React.FC = () => {
     setItemNumber(e.target.value);
   }
 
+  useEffect(() => {
+    setLoader(true);
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+    BaseUrl.get(
+      `/issues?limit=${itemNumber}&page=${selectedOption}&search=${searchText}&solved=${issueStatus}`,
+      axiosConfig
+    ).then((res) => {
+      if (res.status === 200) {
+        if (res.data) {
+          setLoader(false);
+          setTotalCount(res.data.count);
+          setIssueData(res.data.data);
+          setPageNumber(res.data.page)
+          setPagesNumber(res.data.pages);
+          if(res.data.data){
+            setShowerCount(res.data.data.length);
+          }
+        } else {
+          setIssueData([]);
+          setTotalCount(0);
+        }
+      } else {
+        setIssueData([]);
+        setTotalCount(0);
+      }
+    });
+  }, [itemNumber, searchText, selectedOption, issueStatus]);
+
+  const useSortableData = (items, config = null) => {
+    const [sortConfig, setSortConfig] = useState(config);
+  
+    const sortedItems = useMemo(() => {
+      if(items){
+        let sortableItems = [...items];
+        if (sortConfig !== null) {
+          sortableItems.sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (a[sortConfig.key] > b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+          });
+        }
+        return sortableItems;
+      }
+    }, [items, sortConfig]);
+  
+    const requestSort = (key) => {
+      let direction = 'ascending';
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'ascending'
+      ) {
+        direction = 'descending';
+      }
+      setSortConfig({ key, direction });
+    };
+  
+    return { items: sortedItems, requestSort, sortConfig };
+  };
+
+  const { items, requestSort, sortConfig } = useSortableData(issueData);
+  const getClassNamesFor = (name) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
+  };
+
   let btnClass = {
     borderRadius: "8px",
     marginLeft: "3px",
@@ -155,6 +208,7 @@ const Issues: React.FC = () => {
 
   return (
     <Fragment>
+      {loader && <BackdropLoader />}
       <div className="row">
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
           <div
@@ -288,7 +342,7 @@ const Issues: React.FC = () => {
                       id="tbg-radio-3"
                       value={1}
                       style={
-                        btnStatus2 == 1 ? { ...btnClass } : { ...btnClass2 }
+                        btnStatus2 === 1 ? { ...btnClass } : { ...btnClass2 }
                       }
                       onClick={() => handleBtnStatus2(1)}
                     >
@@ -297,13 +351,8 @@ const Issues: React.FC = () => {
                     <ToggleButton
                       id="tbg-radio-4"
                       value={2}
-                      // style={{
-                      //   ...btnClass,
-                      //   background: "white",
-                      //   color: "#6460F2",
-                      // }}
                       style={
-                        btnStatus2 == 2 ? { ...btnClass } : { ...btnClass2 }
+                        btnStatus2 === 2 ? { ...btnClass } : { ...btnClass2 }
                       }
                       onClick={() => handleBtnStatus2(2)}
                     >
@@ -341,12 +390,8 @@ const Issues: React.FC = () => {
                       >
                         ClassID
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('class_id')}
+                          className={getClassNamesFor('class_id')}
                         />
                       </th>
                       <th
@@ -355,12 +400,8 @@ const Issues: React.FC = () => {
                       >
                         User
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('user_name')}
+                          className={getClassNamesFor('user_name')}
                         />
                       </th>
                       <th
@@ -369,12 +410,8 @@ const Issues: React.FC = () => {
                       >
                         Instructor
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('teacher_name')}
+                          className={getClassNamesFor('teacher_name')}
                         />
                       </th>
                       <th
@@ -383,12 +420,8 @@ const Issues: React.FC = () => {
                       >
                         Class Date
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('created')}
+                          className={getClassNamesFor('created')}
                         />
                       </th>
                       <th
@@ -397,12 +430,8 @@ const Issues: React.FC = () => {
                       >
                         Payment
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('payment')}
+                          className={getClassNamesFor('payment')}
                         />
                       </th>
                       <th
@@ -411,12 +440,8 @@ const Issues: React.FC = () => {
                       >
                         Cost
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('cost')}
+                          className={getClassNamesFor('cost')}
                         />
                       </th>
                       <th
@@ -425,12 +450,8 @@ const Issues: React.FC = () => {
                       >
                         Reported
                         <AiOutlineCaretDown
-                          color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('updated')}
+                          className={getClassNamesFor('updated')}
                         />
                       </th>
                       <th
@@ -449,16 +470,16 @@ const Issues: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {userData &&
-                      userData.length > 0 &&
-                      userData.map((item: any, index) => (
+                    {items ?
+                      items.length > 0 &&
+                      items.map((item: any, index) => (
                         <tr key={index}>
                           <td style={{ paddingLeft: 15 + "px" }}>
                             <Link
-                              to={`/classes/${item.id}`}
+                              to={`/classes/${item.class_id}`}
                               style={{ color: "#817EB7" }}
                             >
-                              {item.id}
+                              {item.class_id}
                             </Link>
                           </td>
                           <td
@@ -469,43 +490,28 @@ const Issues: React.FC = () => {
                               color: "#5D59B4",
                             }}
                           >
-                            {item.first_name} {item.last_name}
+                            {item.user_name}
                           </td>
 
                           <td style={{ color: "#817EB7"}}>
-                            Tony C
-                          </td>
-                          {/* <td>{item.city}</td> */}
-                          <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            12-05-2022
-                          </td>
-                          {/* <td>{item.state}</td> */}
-                          <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {/* {item.email} */}
-                            {payment[index % 3]}
+                            {item.teacher_name}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            $450.00
+                          {item.class_date}
                           </td>
-                          <td
-                            style={{
-                              color: "#817EB7",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}
-                          >
-                            12-05-2022
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                            {item.payment}
                           </td>
-                          <td
-                            style={{
-                              color: "#817EB7",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}
-                          >
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                            {item.cost}
+                          </td>
+                          <td style={{ color: "#817EB7", textAlign: "center", verticalAlign: "middle", }} >
+                            {DateFunc(item.created)}
+                          </td>
+                          <td style={{ color: "#817EB7", textAlign: "center", verticalAlign: "middle", }} >
                             <Button
                               onClick={() =>
-                                handleShowModal(item.id, item.status)
+                                handleShowModal(item.class_id, item.user_id, item.teacher_id, item.user_name, item.teacher_name )
                               }
                               style={{
                                 background: "none",
@@ -524,28 +530,38 @@ const Issues: React.FC = () => {
                             }}
                           >
                             <Link
-                              // className="nav-link"
-                              to={`/issues/${item.id}`}
+                              to={{
+                                pathname: `/issues/${item.id}`,
+                                state: {
+                                  issueInfo: item,
+                                  issuesStatus: issueStatus,
+                                },
+                              }}
+
                               style={{
                                 color: "#817EB7",
                                 textAlign: "center",
                                 margin: "auto",
                               }}
+
                             >
                               Issue
                             </Link>
                           </td>
                         </tr>
-                      ))}
+                      )) : <tr><td colSpan={9} className="text-center">No Data</td></tr> }
                   </tbody>
                 </table>
               </div>
               {showModal && (
                 <Chat
-                  userId={userId}
-                  userStatus={userStatus}
-                  showModal={showModal}
-                  handleCallback={handleParentCallback}
+                  classId = {classId}
+                  userId = {userId}
+                  teacherId = {teacherId}
+                  userName = {userName}
+                  teacherName = {teacherName}
+                  showModal = {showModal}
+                  handleCallback = {handleParentCallback}
                 />
               )}
               <div
@@ -561,6 +577,10 @@ const Issues: React.FC = () => {
                       value={selectedOption}
                       onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
                       <option value="10">10</option>
                       <option value="15">15</option>
@@ -578,6 +598,10 @@ const Issues: React.FC = () => {
                       value={selectedOption}
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
                       {handleOption()}
                     </select>

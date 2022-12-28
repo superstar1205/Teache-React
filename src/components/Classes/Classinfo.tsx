@@ -1,49 +1,36 @@
-import React, { Fragment, Dispatch, useState, useEffect } from "react";
+import React, { Fragment, Dispatch, useState, useMemo, useEffect } from "react";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { FormControl, Col, Row } from "react-bootstrap";
+import { FormControl } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import { AiOutlineCaretDown } from "react-icons/ai";
-import { getBadge } from "../../utils";
+import { getAbbr, getTeacherBadge } from "../../utils";
 import EditUserDetail from "../Users/EditUserDetail";
 import ViewUserDetail from "../Users/ViewUserDetail";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const cities = [
-  "Abilene",
-  "Phoenix",
-  "Seattle",
-  "Las Vegas",
-  "Abilene",
-  "Seattle",
-];
-
-const states = ["AL", "FL", "MR", "NB", "AL", "MR"];
-
-const classes = [10, 24, 6, 4, 10, 2];
-
-const Issues: React.FC = () => {
+const Classinfo: React.FC = () => {
+  let pathname =useLocation().pathname;
+  let temp = pathname.slice(1).split("/");
+  const  id  = Number(temp[1]);
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("user", "list"));
   const [showModal, setShowModal] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
-  const [userData, setUserData] = useState([]);
-  console.log("userData", userData);
-  const [userId, setUserId] = useState("");
-  const [userStatus, setUserStatus] = useState("");
+  const [teacherId, setTeacherId] = useState("");
+  const [teacherStatus, setTeacherStatus] = useState("");
   const [detail, setDetail] = useState();
   const [searchText, setSearchText] = useState("");
+  const [classData, setClassData] = useState([]);
   const [totalCount, setTotalCount] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
-  const [selectedStaus, setSelectedStatus] = useState("");
-  const [loader, setLoader] = useState(true);
-
-  // const handleParentCallback = (childData: any) => {
-  //   setShowModal(childData);
-  // };
+  const [selectedOption, setSelectedOption] = useState(1);
+  const [showerCount, setShowerCount] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pagesNumber, setPagesNumber] = useState(1);
+  const [itemNumber, setItemNumber] = useState(10);
 
   const handleParentCallback = (childData: any) => {
     if (childData) {
@@ -60,8 +47,8 @@ const Issues: React.FC = () => {
 
   const handleShowModal = (id: any, status: string) => {
     setShowModal(true);
-    setUserId(id);
-    setUserStatus(status);
+    setTeacherId(id);
+    setTeacherStatus(status);
   };
 
   const handleViewShowModal = (item: any) => {
@@ -76,57 +63,116 @@ const Issues: React.FC = () => {
       },
     };
     BaseUrl.get(
-      `/users?page=${selectedOption}&search=${searchText}&filter=${selectedStaus}`,
+      `/class-type-teachers/${id}?limit=${itemNumber}&page=${selectedOption}&search=${searchText}`,
       axiosConfig
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
-          setUserData(res.data.data);
           setTotalCount(res.data.count);
+          setClassData(res.data.data);
+          setPageNumber(res.data.page);
+          setPagesNumber(res.data.pages);
+          if(res.data.data){
+            setShowerCount(res.data.data.length);
+          }
+          console.log(res.data.data);
         } else {
-          setUserData([]);
+          setClassData([]);
           setTotalCount(0);
         }
       } else {
-        setUserData([]);
+        setClassData([]);
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, selectedStaus]);
+  }, [id, itemNumber, showModal, searchText, selectedOption]);
 
   const handleClear = () => {
     setSearchText("");
-    setSelectedOption("");
+    setSelectedOption(1);
   };
-  const handleSelectedClear = () => {
-    setSelectedStatus("");
-    setSelectedOption("");
-  };
+
+  const handlePrevious = (page:any) => {
+    if(page <= 1){
+       page=1;
+       setSelectedOption(page)
+    }
+    else{
+      let current_page = page;
+      let previous_page = Number(current_page-1);
+      setSelectedOption(previous_page);
+     }
+  }
+  const handleNext = (page:any) => {
+    if(page < pagesNumber){
+      let current_page = page;
+      let next_page = Number(current_page)+1;
+      setSelectedOption(next_page);
+    }
+  }
 
   const handleOption = () => {
     let content = [];
-    for (var index = 1; index <= Math.ceil(totalCount / 10); index++) {
+    for (var index = 1; index <= pagesNumber; index++) {
       content.push(
         <option key={index} value={index}>
           {index}
         </option>
       );
     }
-    console.log(Math.ceil(totalCount / 10), "-----------content");
     return content;
   };
   const handleSelectedOption = (e: any) => {
     setSelectedOption(e.target.value);
   };
-  const handleStatusSelection = (e: any) => {
-    setSelectedStatus(e.target.value);
+  const handleSelectItem = (e: any) => {
+    setItemNumber(e.target.value);
+  }
+
+  const useSortableData = (teacherItems, config = null) => {
+    const [sortConfig, setSortConfig] = useState(config);
+
+    const sortedItems = useMemo(() => {
+      if(teacherItems){
+        let sortableItems = [...teacherItems];
+        if (sortConfig !== null) {
+          sortableItems.sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (a[sortConfig.key] > b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+          });
+        }
+        return sortableItems;
+      }
+      
+    }, [teacherItems, sortConfig]);
+  
+    const requestSort = (key) => {
+      let direction = 'ascending';
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'ascending'
+      ) {
+        direction = 'descending';
+      }
+      setSortConfig({ key, direction });
+    };
+  
+    return { teacherItems: sortedItems, requestSort, sortConfig };
   };
 
-  let btnClass = {
-    borderRadius: "8px",
-    marginLeft: "3px",
-    background: "#6460F2",
-    border: "none",
+  const { teacherItems, requestSort, sortConfig } = useSortableData(classData);
+
+  const getClassNamesFor = (name) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
   };
 
   return (
@@ -170,7 +216,7 @@ const Issues: React.FC = () => {
                       paddingLeft: "10px",
                     }}
                   >
-                    222
+                    {id}
                   </span>
                 </div>
                 <div
@@ -242,7 +288,7 @@ const Issues: React.FC = () => {
                       color: "#817EB7",
                     }}
                   >
-                    Total users
+                    Total Instructors
                   </span>
                   <span
                     style={{
@@ -253,14 +299,14 @@ const Issues: React.FC = () => {
                       paddingLeft: "20px",
                     }}
                   >
-                    5
+                    {totalCount}
                   </span>
                 </div>
               </div>
               {showModal && (
                 <EditUserDetail
-                  userId={userId}
-                  userStatus={userStatus}
+                  userId={teacherId}
+                  teacherStatus={teacherStatus}
                   showModal={showModal}
                   handleCallback={handleParentCallback}
                 />
@@ -302,11 +348,8 @@ const Issues: React.FC = () => {
                         Instructor
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('name')}
+                          className={getClassNamesFor('name')}
                         />
                       </th>
                       <th
@@ -316,11 +359,8 @@ const Issues: React.FC = () => {
                         Ins ID
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('id')}
+                          className={getClassNamesFor('id')}
                         />
                       </th>
                       <th
@@ -330,11 +370,8 @@ const Issues: React.FC = () => {
                         City
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('city')}
+                          className={getClassNamesFor('city')}
                         />
                       </th>
                       <th
@@ -344,11 +381,8 @@ const Issues: React.FC = () => {
                         State
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('state')}
+                          className={getClassNamesFor('state')}
                         />
                       </th>
                       <th
@@ -358,11 +392,8 @@ const Issues: React.FC = () => {
                         Email
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('email')}
+                          className={getClassNamesFor('email')}
                         />
                       </th>
                       <th
@@ -372,11 +403,8 @@ const Issues: React.FC = () => {
                         Classes
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('classes_count')}
+                          className={getClassNamesFor('classes_count')}
                         />
                       </th>
                       <th
@@ -386,11 +414,8 @@ const Issues: React.FC = () => {
                         Rvenue
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('revenue')}
+                          className={getClassNamesFor('revenue')}
                         />
                       </th>
                       <th
@@ -400,11 +425,8 @@ const Issues: React.FC = () => {
                         Status
                         <AiOutlineCaretDown
                           color="#BFBDFF"
-                          style={{
-                            paddingLeft: "2px",
-                            width: "16x",
-                            height: "width:16x",
-                          }}
+                          onClick={() => requestSort('status')}
+                          className={getClassNamesFor('status')}
                         />
                       </th>
                       <th
@@ -417,9 +439,9 @@ const Issues: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {userData &&
-                      userData.length > 0 &&
-                      userData.map((item: any, index) => (
+                    {teacherItems ?
+                      teacherItems.length > 0 &&
+                      teacherItems.map((item: any, index) => (
                         <tr key={index}>
                           <td
                             style={{
@@ -429,7 +451,7 @@ const Issues: React.FC = () => {
                               color: "#5D59B4",
                             }}
                           >
-                            {item.first_name} {item.last_name}
+                            {item.name}
                           </td>
                           <td
                             style={{
@@ -442,20 +464,20 @@ const Issues: React.FC = () => {
                           </td>
 
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {cities[index]}
+                            {item.city}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
-                            {states[index]}
+                            {getAbbr(item.state)}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             {item.email}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
-                              to={`/users/${item.id}`}
+                              to={`/instructor/${item.id}`}
                               style={{ color: "#817EB7" }}
                             >
-                              {classes[index]}
+                              {item.classes_count}
                             </Link>
                           </td>
                           <td
@@ -465,7 +487,7 @@ const Issues: React.FC = () => {
                               verticalAlign: "middle",
                             }}
                           >
-                            $450
+                            ${item.revenue}
                           </td>
                           <td
                             style={{
@@ -474,7 +496,7 @@ const Issues: React.FC = () => {
                               verticalAlign: "middle",
                             }}
                           >
-                            {getBadge(item.status)}
+                            {getTeacherBadge(item.status)}
                           </td>
                           <td style={{ textAlign: "center" }}>
                             <button
@@ -556,7 +578,7 @@ const Issues: React.FC = () => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      )) : <tr><td colSpan={9} className="text-center">No Data</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -571,10 +593,17 @@ const Issues: React.FC = () => {
                     </label>
                     <select
                       value={selectedOption}
-                      onChange={(e) => handleSelectedOption(e)}
+                      onChange={(e) => handleSelectItem(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
-                      {handleOption()}
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
@@ -587,6 +616,10 @@ const Issues: React.FC = () => {
                       value={selectedOption}
                       onChange={(e) => handleSelectedOption(e)}
                       className="classic"
+                      style={{
+                        paddingLeft: "16px",
+                        paddingRight: "16px"
+                      }}
                     >
                       {handleOption()}
                     </select>
@@ -601,7 +634,7 @@ const Issues: React.FC = () => {
                 >
                   <div>
                     <label className="totaluser" style={{ color: "#817EB7", marginRight: "20px" }}>
-                      10 of 250
+                    {(pageNumber-1)*itemNumber + showerCount} of {totalCount}
                     </label>
                     <button
                       style={{
@@ -612,6 +645,7 @@ const Issues: React.FC = () => {
                       }}
                       type="button"
                       className="btn btn-default btn-sm"
+                      onClick={()=>handlePrevious(pageNumber)}
                     >
                       <i
                         style={{ color: "#5D59B4" }}
@@ -622,6 +656,7 @@ const Issues: React.FC = () => {
                     <button
                       type="button"
                       className="btn btn-default btn-sm"
+                      onClick={()=>handleNext(pageNumber)}
                       style={{
                         background: "#DDE9FF",
                         width: "42px",
@@ -644,4 +679,4 @@ const Issues: React.FC = () => {
   );
 };
 
-export default Issues;
+export default Classinfo;

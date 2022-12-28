@@ -60,9 +60,12 @@ const Admin: React.FC = () => {
               <Route path={`/issues`} exact>
                 <Issues />
               </Route>
-              <Route path={`/issues/:id`}>
-                <IssueSingle />
-              </Route>
+              <Route 
+                path={`/issues/:id`}
+                render={({location})=>{
+                  return <IssueSingle issuesInfo = {location.state } />
+                }}
+              />
               <Route path={`/message`}>
                 <Message />
               </Route>

@@ -1,12 +1,96 @@
-import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
+import { usePubNub } from 'pubnub-react';
+import moment from 'moment';
+import { Modal } from "react-bootstrap";
 
 export default function EditUserDetail(props: any) {
   const [show, setShow] = useState(props.showModal);
+  const pubNub = usePubNub();
+  const [messages, setMessages] = useState<any[]>([]);
+
+  let channelId: string = '';
+  if (props.userId && props.teacherId) {
+    channelId = props.userId + '_channel_inst' + props.teacherId; //"461_channel_inst463";
+  }
+
+  useEffect(() => {
+    if (pubNub) {
+      const listener = {
+        message: envelope => {
+          console.log('envelope: ', envelope.message[0]);
+        },
+        signal: function (s) {
+          //  let typingUserId = s.publisher;
+        },
+        presence: function (event) {
+          console.log('presence: ', event);
+        },
+      };
+      pubNub.addListener(listener);
+
+      pubNub.subscribe({
+        channels: [channelId],
+        withPresence: true,
+      });
+      return () => {
+        pubNub.removeListener(listener);
+        pubNub.unsubscribeAll();
+      };
+    }
+  }, [pubNub]);
+
+  useEffect(() => {
+    if (channelId) {
+      pubNub.history(
+        {channel: channelId, count: 100, reverse: true},
+        (status, res) => {
+          console.log('history status: ', status);
+          let newMessage: any[] = [];
+          res.messages.forEach(function (element, index) {
+            newMessage[index] = element.entry[0];
+          });
+          setMessages(newMessage);
+        },
+      );
+    }
+  }, []);
 
   const handleClose = () => {
     props.handleCallback(false);
+  };
+
+  const renderMessage = (msgProp: {
+    _id: string;
+    createdAt: string;
+    text: string;
+    user: {
+      _id: number;
+    }
+  }) => {
+    return (
+      <>
+        {/* {msgProp.user._id === 461 ? */}
+        {msgProp.user._id === props.teacherId ?
+          <div className="yours messages">
+            <div id="writer">{props.teacherName}</div>
+            <div className="yours message last">
+              
+                {msgProp.text}
+              <p>{moment(msgProp.createdAt).format('LT')}</p>
+            </div>
+          </div>
+          :
+          <div className="mine messages">
+            <div id="writer">{props.userName}</div>
+            <div className="message last">
+              {msgProp.text}
+              <p>{moment(msgProp.createdAt).format('LT')}</p>
+            </div>
+          </div>
+        }
+      </>
+    );
   };
 
   return (
@@ -49,72 +133,13 @@ export default function EditUserDetail(props: any) {
           }}
         >
           <div>
-            <div className="yours messages">
-              <div className="message last">
-                <div id="writer">Tony Crabbe</div>
-                When will our class start?
-                <p>10:35 am</p>
-              </div>
-            </div>
-            <div className="mine messages">
-              <div className="message last">
-                <div id="writer">Elly Mishley</div>
-                Hello! Sorry, I'll be 5 minutes late. Please be ready for class
-                and put on your sportswear.<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="yours messages">
-              <div className="message last">
-              <div id="writer">Tony Crabbe</div>
-                Good! Thank you!<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="mine messages">
-              <div className="message last">
-              <div id="writer">Elly Mishley</div>
-                Hello! Sorry, I'll be 5 minutes late. Please be ready for class
-                and put on your sportswear.<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="yours messages">
-              <div className="message last">
-              <div id="writer">Tony Crabbe</div>
-                Good! Thank you!<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="mine messages">
-              <div className="message last">
-              <div id="writer">Elly Mishley</div>
-                Hello! Sorry, I'll be 5 minutes late. Please be ready for class
-                and put on your sportswear.<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="yours messages">
-              <div className="message last">
-              <div id="writer">Tony Crabbe</div>
-                Good! Thank you!<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="mine messages">
-              <div className="message last">
-              <div id="writer">Elly Mishley</div>
-                Hello! Sorry, I'll be 5 minutes late. Please be ready for class
-                and put on your sportswear.<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="yours messages">
-              <div className="message last">
-              <div id="writer">Tony Crabbe</div>
-                Good! Thank you!<p>10:35 am</p>
-              </div>
-            </div>
-            <div className="mine messages">
-              <div className="message last">
-              <div id="writer">Elly Mishley</div>
-                Hello! Sorry, I'll be 5 minutes late. Please be ready for class
-                and put on your sportswear.<p>10:35 am</p>
-              </div>
-            </div>
+            {messages.map((message, key) => {
+              return (
+                <div key={key}>
+                  {renderMessage(message)}
+                </div>
+              )
+            })}       
           </div>
         </Modal.Body>
       </Modal>

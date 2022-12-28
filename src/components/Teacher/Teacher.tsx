@@ -128,7 +128,6 @@ const Teacher: React.FC = () => {
         toast.success(res.data.message);
         cancelDelete();
         setLoader(false);
-        getTeachers();
       })
       .catch((err) => {
         if (err.response) {
@@ -141,7 +140,8 @@ const Teacher: React.FC = () => {
   const handleSelectItem = (e: any) => {
     setItemNumber(e.target.value);
   }
-  const getTeachers = () => {
+  
+  useEffect(() => {
     setLoader(true);
     const axiosConfig: any = {
       headers: {
@@ -174,9 +174,6 @@ const Teacher: React.FC = () => {
           setLoader(false);
         }
       });
-  };
-  useEffect(() => {
-    getTeachers();
   }, [showModal, searchText, itemNumber, page]);
 
   const useSortableData = (items, config = null) => {

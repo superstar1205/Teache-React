@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button, Modal, Row, Col } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import BaseUrl from "../../BaseUrl/BaseUrl";
@@ -7,19 +7,49 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function AddClass(props: any) {
   const [show, setShow] = useState(props.showModal);
-  const [status, setStaus] = useState("");
+  const [classType, setClassType] = useState("");
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState();
-  const [fileData, setFileData] = useState("");
+  const iconRef = useRef<HTMLInputElement>(null);
+  const picRef = useRef<HTMLInputElement>(null);
+  const [picImage, setPicImage] = useState(null);
+  const [iconImage, setIconImage] = useState(null);
+  const [picData, setPicData] = useState(null);
+  const [iconData, setIconData] = useState(null);
 
-  const handlFileChange = (e) =>{
-    setFile(e.target.value);
-  }
 
-  const handleUpload = () => {
-    // setFileData();
-    console.log(inputRef.current.click());
+  useEffect(() => {
+    console.log("I", iconImage);
+    console.log("P", picImage);
+  }, [picImage, iconImage]);
+  const reader = new FileReader();
+  const handleIconChange = (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIconImage(file);
+      reader.addEventListener("load", () => {
+        setIconData(reader.result);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleIconDialog = (e: any) => {
+    iconRef.current.click();
+  };
+
+  const handlePicChange = (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPicImage(file);
+      reader.addEventListener("load", () => {
+        setPicData(reader.result);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePicDialog = (e: any) => {
+    picRef.current.click();
   };
 
   const handleClose = () => {
@@ -27,24 +57,34 @@ export default function AddClass(props: any) {
     props.handleCallback(false);
   };
   const handleChange = (e: any) => {
-    setStaus(e.target.value);
+    setClassType(e.target.value);
   };
 
   const handleSubmitStatus = () => {
-    if (status !== "") {
-      const data = {
-        status: status,
-        user_id: props.userId,
-      };
-      BaseUrl.post("/block-unblock", data)
-        .then((res) => {
-          toast.success("Status Changed");
-        })
-        .catch((err) => {
-          toast.error("Something Went Wrong");
-        });
+    if(classType === ""){
+      toast.error("Please Enter Class Type!");
+    } else if(iconData === null){
+      toast.error("Please Select Class Icon!");
+    } else if(picData === null){
+      toast.error("Please Enter Class Picture!");
     } else {
-      toast.error("Please Select Status Option.");
+      toast.error("Api doesn't exist!");
+      // const axiosConfig: any = {
+      //   headers: {
+      //     Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      //   },
+      // };
+      // const formData = new FormData();
+      // formData.append('class_type', classType);
+      // formData.append('class_icon', iconData);
+      // formData.append('class_picture', picData);
+      // BaseUrl.put(`/addclass`, formData, axiosConfig).then((res) => {
+      //   if(res.status === 200){
+      //     toast.success("Class added successfully!");
+      //   } else{
+      //     toast.error(res.data.message ? res.data.message : "Something was wrong!");
+      //   }
+      // });
     }
   };
 
@@ -92,7 +132,7 @@ export default function AddClass(props: any) {
               background: "#FFFFFF",
               border: "none",
               height: "45px",
-              color: '#817EB7',
+              color: "#817EB7",
             }}
           ></Form.Control>
 
@@ -121,7 +161,7 @@ export default function AddClass(props: any) {
                 </div>
                 <div>
                   <img
-                    src="/upload_icon.png"
+                    src={iconData ? iconData : "/upload_icon.png"}
                     style={{
                       width: "35px",
                       height: "35px",
@@ -131,12 +171,12 @@ export default function AddClass(props: any) {
                   />
                 </div>
                 <div style={{ textAlign: "center" }}>
-
                   <input
-                    ref={inputRef}
+                    ref={iconRef}
                     className="d-none"
                     type="file"
                     accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
+                    onChange={handleIconChange}
                   />
                   <button
                     style={{
@@ -148,7 +188,7 @@ export default function AddClass(props: any) {
                       marginTop: "10%",
                       fontWeight: 600,
                     }}
-                    onClick={handleUpload}
+                    onClick={handleIconDialog}
                   >
                     Change Icon
                   </button>
@@ -177,7 +217,7 @@ export default function AddClass(props: any) {
                 </div>
                 <div>
                   <img
-                    src="/upload_img.png"
+                    src={picData ? picData :"/upload_img.png"}
                     style={{
                       width: "35px",
                       height: "35px",
@@ -188,9 +228,9 @@ export default function AddClass(props: any) {
                 </div>
                 <div style={{ textAlign: "center" }}>
                   <input
-                    ref={inputRef}
+                    ref={picRef}
                     className="d-none"
-                    onChange={handlFileChange}
+                    onChange={handlePicChange}
                     type="file"
                     accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
                   />
@@ -204,7 +244,7 @@ export default function AddClass(props: any) {
                       marginTop: "10%",
                       fontWeight: 600,
                     }}
-                    onClick={handleUpload}
+                    onClick={handlePicDialog}
                   >
                     Add Picture
                   </button>
@@ -220,7 +260,7 @@ export default function AddClass(props: any) {
               fontWeight: 500,
               textTransform: "capitalize",
               marginTop: "30px",
-              marginBottom: '8px'
+              marginBottom: "8px",
             }}
           >
             Class ID <span style={{ color: "#C4C2E9" }}>(Auto generated)</span>
@@ -237,7 +277,7 @@ export default function AddClass(props: any) {
               background: "#FFFFFF",
               border: "none",
               height: "45px",
-              color: '#817EB7'
+              color: "#817EB7",
             }}
           ></Form.Control>
         </Modal.Body>

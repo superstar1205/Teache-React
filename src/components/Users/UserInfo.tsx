@@ -52,6 +52,9 @@ const Users: React.FC = (props: object) => {
   const [showerCount, setShowerCount] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
+  const [selectedTeacherid, setSelectedTeacherid] = useState("");
+  const [selectedClassid, setSelectedClassid] = useState("");
+  const [selectedTeacherName, setSelectedTeacherName] = useState("");
 
   const handleChatParentCallback = (childData: any) => {
     setChatDetail(childData);
@@ -70,13 +73,14 @@ const Users: React.FC = (props: object) => {
   };
 
   const handleShowModal = (id: any, status: string) => {
-    setUserId(id);
     setUserStatus(status);
     setShowModal(true);
   };
-  const handleShowChatModal = (id: any) => {
+  const handleShowChatModal = (classid: any, teacherid: any, teacher_name: string) => {
     setChatDetail(true);
-    
+    setSelectedClassid(classid);
+    setSelectedTeacherid(teacherid);
+    setSelectedTeacherName(teacher_name);
   };
   const handleViewShowModal = (item: any) => {
     setViewDetail(true);
@@ -84,7 +88,6 @@ const Users: React.FC = (props: object) => {
   };
 
   const handleDeleteModal = (id: any) => {
-    setUserId(id);
     setDeleteModal(true);
   }
 
@@ -112,7 +115,6 @@ const Users: React.FC = (props: object) => {
       });
   };
   const cancelDelete = () => {
-    setUserId(null);
     setDeleteModal(false);
   };
 
@@ -128,6 +130,7 @@ const Users: React.FC = (props: object) => {
         if(res.data) {
           if(res.data.data) {
             setUserIData(res.data.data);
+            setUserId(res.data.data.id);
           }
         }
       }});
@@ -154,6 +157,7 @@ const Users: React.FC = (props: object) => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
+          console.log(res.data.data);
           
         } else {
           setUserData([]);
@@ -709,7 +713,7 @@ const Users: React.FC = (props: object) => {
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Button
-                              onClick={() => handleShowChatModal(item.id)}
+                              onClick={() => handleShowChatModal(item.id, item.teacher_user_id, item.name)}
                               style={{
                                 background: "none",
                                 border: "none",
@@ -839,7 +843,11 @@ const Users: React.FC = (props: object) => {
       )}
       {chatDetail && (
         <Chat
+          classId={selectedClassid}
           userId={userId}
+          teacherId={selectedTeacherid}
+          userName = {userIData.first_name+" "+userIData.last_name}
+          teacherName = {selectedTeacherName}
           showModal={chatDetail}
           handleCallback={handleChatParentCallback}
         />

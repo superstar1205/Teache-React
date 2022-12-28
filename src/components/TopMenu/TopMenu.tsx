@@ -1,7 +1,7 @@
 import React from "react";
 import TopMenuAccount from "./TopMenuAccount";
 import { useLocation, useHistory } from "react-router-dom";
-import { Row, Col, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { BiChevronLeft } from "react-icons/bi";
 import "./TopMenu.css";
 
@@ -27,7 +27,7 @@ const TopMenu: React.FC = () => {
 
     switch (temp[0]) {
       case "cancelledclasses":
-        temp[0] = "class";
+        temp[0] = "Class";
         break;
 
       default:
@@ -35,21 +35,36 @@ const TopMenu: React.FC = () => {
     }
 
     if (temp.length > 1) {
-      temp[1] = " ID : ".concat(temp[1]);
-      return (
-        <>
-          <Button style={btnStyle} onClick={goToPreviousPath}>
-            <BiChevronLeft
-              width={42}
-              height={42}
-              style={{ color: "#5D59B4", fontSize: "30px" }}
-            />
-          </Button>
-          {temp[0].concat(temp[1])}
-        </>
-      );
-    }
-    return temp;
+      if(temp[0] === "class"){
+        return (
+          <>
+            <Button style={btnStyle} onClick={goToPreviousPath}>
+              <BiChevronLeft
+                width={42}
+                height={42}
+                style={{ color: "#5D59B4", fontSize: "30px" }}
+              />
+            </Button>
+            {temp[2]}
+          </>
+        );
+      } else{
+        temp[1] = " ID : ".concat(temp[1]);
+          return (
+            <>
+              <Button style={btnStyle} onClick={goToPreviousPath}>
+                <BiChevronLeft
+                  width={42}
+                  height={42}
+                  style={{ color: "#5D59B4", fontSize: "30px" }}
+                />
+              </Button>
+              {temp[0].concat(temp[1])}
+            </>
+          );
+        }
+      }
+      return temp;
   };
 
   return (

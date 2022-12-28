@@ -27,7 +27,6 @@ const Class: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(0);
   const [selectedOption, setSelectedOption] = useState(0);
-  const [loader, setLoader] = useState(true);
   const [showerCount, setShowerCount] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
@@ -358,12 +357,9 @@ const Class: React.FC = () => {
                           >
                             <Link
                               to={{
-                                pathname: `/class/${item.id}`,
-                                state: {
-                                  userinfo: item,
-                                },
+                                pathname: `/class/${item.id}/${item.title}`
                               }}
-                              style={{ color: "#5D59B4" }}
+                              style={{ color: "#817EB7" }}
                             >
                               {item.title}
                             </Link>
@@ -372,10 +368,7 @@ const Class: React.FC = () => {
                           <td style={{ textAlign: "center" }}>
                             <Link
                               to={{
-                                pathname: `/class/${item.id}`,
-                                state: {
-                                  userinfo: item,
-                                },
+                                pathname: `/class/${item.id}/${item.title}`,
                               }}
                               style={{ color: "#817EB7" }}
                             >
@@ -390,7 +383,6 @@ const Class: React.FC = () => {
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
-                              // className="nav-link"
                               to="#"
                               style={{
                                 color: "#817EB7",
@@ -403,7 +395,6 @@ const Class: React.FC = () => {
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Link
-                              // className="nav-link"
                               to="#"
                               style={{
                                 color: "#817EB7",

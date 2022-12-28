@@ -54,6 +54,7 @@ const CancelledClass: React.FC = () => {
         if(res.data) {
           if(res.data.data) {
             setClassData(res.data.data);
+            console.log(res.data.data);
             setTotalCost(res.data.data.cost);
             if(res.data.data.processed_instructor === true){
               setPaymentStatus(1);
@@ -1164,7 +1165,14 @@ const CancelledClass: React.FC = () => {
       }
       </Col>
       {showModal && (
-        <Chat showModal={showModal} handleCallback={handleParentCallback} />
+        <Chat 
+          showModal={showModal} 
+          userId = {classData && classData.user_id}
+          teacherId = {classData && classData.teacher_user_id}
+          userName = {classData && classData.user_name}
+          teacehrName = {classData && classData.teacher_name}
+          classId = {classData && classData.id}
+          handleCallback={handleParentCallback} />
       )}
     </Row>
     </Fragment>

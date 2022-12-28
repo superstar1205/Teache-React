@@ -133,7 +133,9 @@ const Users: React.FC = () => {
           setUserData(res.data.data);
           setPageNumber(res.data.page)
           setPagesNumber(res.data.pages);
-          setShowerCount(res.data.data.length);
+          if(res.data.data){
+            setShowerCount(res.data.data.length);
+          }
         } else {
           setLoader(false);
           setUserData([]);
@@ -740,7 +742,6 @@ const Users: React.FC = () => {
                 <div
                   style={{
                     marginRight: "1.5%",
-                    // marginLeft: "20px",
                     paddingTop: "8px",
                   }}
                 >

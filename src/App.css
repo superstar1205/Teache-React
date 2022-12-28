@@ -94,9 +94,8 @@ table tr {
 }
 
 .message {
-    border-radius: 20px;
     margin-top: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
     display: inline-block;
     padding: 20px 26px;
 }
@@ -111,6 +110,7 @@ table tr {
     position: relative;
     max-width: 48%;
     color: white;
+    border-radius: 20px 20px 20px 0px;
 }
 
 .yours .message.last:before {
@@ -142,10 +142,9 @@ table tr {
 }
 
 .mine .message {
+    border-radius: 20px 20px 0px 20px;
     max-width: 48%;
-    /* color: white; */
     margin-left: 25%;
-    /* background: linear-gradient(to bottom, #dde9ff 0%, #0085d1 100%); */
     background-color: #dde9ff;
     color: #5d59b4;
     background-attachment: fixed;
@@ -185,6 +184,7 @@ table tr {
     bottom: -26px;
     color: #c4c2e9;
     font-size: 14px;
+    left: 0;
 }
 
 .yours p {
@@ -195,10 +195,10 @@ table tr {
     bottom: -26px;
     color: #c4c2e9;
     font-size: 14px;
+    right: 0;
 }
 
 .yours #writer {
-    position: absolute;
     top: -20px;
     width: 100%;
     color: #817eb7;
@@ -208,7 +208,6 @@ table tr {
 }
 
 .mine #writer {
-    position: absolute;
     top: -20px;
     width: 100%;
     color: #817eb7;

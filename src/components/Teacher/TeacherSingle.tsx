@@ -40,7 +40,8 @@ const Users: React.FC = (props: object) => {
   const [classesData, setClassesData] = useState([]);
   const [teacherData, setTeacherData] : any[] = useState([]);
   const [teacherClassType, setTeacherClassType] = useState("");
-  const [userId, setUserId] = useState("");
+  const [techerUId, seteacherUId] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const [userStatus, setUserStatus] = useState("");
   const [totalCount, setTotalCount] = useState(1);
   const [page, setPage] = useState(1);
@@ -52,6 +53,10 @@ const Users: React.FC = (props: object) => {
   const [showerCount, setShowerCount] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
+  const [selectedUserid, setSelectedUserid] = useState("");
+  const [selectedClassid, setSelectedClassid] = useState("");
+  const [selectedUserName, setSelectedUserName] = useState("");
+  const [teacherName, setTacherName] = useState("");
 
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
@@ -69,25 +74,24 @@ const Users: React.FC = (props: object) => {
     }
   };
 
-  const handleShowModal = (id: any) => {
+  const handleShowModal = (classid: any, user_id: any, user_name: any) => {
     setShowModal(true);
-    setUserId(id);
+    setSelectedClassid(classid);
+    setSelectedUserid(user_id);
+    setSelectedUserName(user_name);
   };
 
   const handleShowModal_ = (userId: any, userStatus: string) => {
     setShowModal_(true);
-    setUserId(userId);
     setUserStatus(userStatus);
   };
 
   const handleViewShowModal_ = (id: any, user: any) => {
     console.log("ID:", id, "user", user);
     setViewDetail_(true);
-    setUserId(id);
   };
 
   const handleDeleteModal = (id: any) => {
-    setUserId(id);
     setDeleteModal(true);
   }
 
@@ -100,7 +104,7 @@ const Users: React.FC = (props: object) => {
       },
     };
 
-    BaseUrl.delete(`/delete-user/${userId}`, axiosConfig)
+    BaseUrl.delete(`/delete-user/${techerUId}`, axiosConfig)
       .then((res) => {
         toast.success(res.data.message);
         cancelDelete();
@@ -115,7 +119,6 @@ const Users: React.FC = (props: object) => {
       });
   };
   const cancelDelete = () => {
-    setUserId(null);
     setDeleteModal(false);
   };
 
@@ -131,9 +134,13 @@ const Users: React.FC = (props: object) => {
       if (res.status === 200){
         if (res.data) {
           if (res.data.data){
+            console.log(res.data.data);
             if (res.data.data.user){
               setTeacherData(res.data.data.user);
               setTeacherClassType(res.data.data.class.title);
+              setTeacherId(res.data.data.id);
+              seteacherUId(res.data.data.user.id);
+              setTacherName(res.data.data.user.first_name+" "+res.data.data.user.last_name);
             }
           }
         } else {
@@ -171,6 +178,7 @@ const Users: React.FC = (props: object) => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
+          console.log(res.data.data);
         } else {
           setClassesData([]);
           setTotalCount(0);
@@ -778,7 +786,7 @@ const Users: React.FC = (props: object) => {
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Button
                               onClick={() =>
-                                handleShowModal(item.id)
+                                handleShowModal(item.id, item.user_id, item.name)
                               }
                               style={{
                                 background: "none",
@@ -887,7 +895,7 @@ const Users: React.FC = (props: object) => {
                     </button>
                     {showModal_ && (
                       <EditUserDetail
-                        userId={userId}
+                        userId={teacherId}
                         userStatus={userStatus}
                         showModal={showModal_}
                         handleCallback={handleParentCallback_}
@@ -896,15 +904,18 @@ const Users: React.FC = (props: object) => {
                     {viewDetail_ && (
                       <ViewTeacherDetail
                         // detail={detail}
-                        userId = {userId}
+                        userId = {teacherId}
                         viewDetail={viewDetail_}
                         handleViewParentCallback={handleViewParentCallback_}
                       />
                     )}
                     {showModal && (
                       <Chat
-                        userId={userId}
-                        userStatus={userStatus}
+                        classId={selectedClassid}
+                        userId={selectedUserid}
+                        teacherId={techerUId}
+                        userName = {selectedUserName}
+                        teacherName = {teacherName}
                         showModal={showModal}
                         handleCallback={handleParentCallback}
                       />
