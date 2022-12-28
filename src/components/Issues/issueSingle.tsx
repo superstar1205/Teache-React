@@ -1,7 +1,4 @@
-import { type } from "os";
 import React, { Fragment, useState, useEffect } from "react";
-// import { Link } from "react-router-dom";
-// import { useDispatch } from "react-redux";
 import { Form, Button } from "react-bootstrap";
 import { usePubNub } from 'pubnub-react';
 import BaseUrl from "../../BaseUrl/BaseUrl";
@@ -13,7 +10,6 @@ interface issuesinfo {
 }
 
 export default function IssueSingle(props: issuesinfo) {
-  console.log(props);
   const issueData = props.issuesInfo.issueInfo;
   const [issueStatus, setIssueStatus] = useState(props.issuesInfo.issuesStatus);
   const [showModal, setShowModal] = useState(false);
@@ -23,6 +19,13 @@ export default function IssueSingle(props: issuesinfo) {
   const [userName, setUserName] =useState("");
   const [teacherName, setTeacherName] =useState("");
   const [txtValue, setTxtValue] = useState("");
+
+  var dateStatus = "";
+  const date = {
+    today : new Date(),
+  };
+
+  var todayDate = moment(date.today).format('LL');
 
   const pubNub = usePubNub();
 
@@ -52,7 +55,7 @@ export default function IssueSingle(props: issuesinfo) {
     if (pubNub) {
       const listener = {
         message: envelope => {
-          console.log('envelope: ', envelope.message[0]);
+          console.log('envelope: ', envelope);
           let newMessages = [...messagesRef.current];
           newMessages.push(envelope.message[0]);
           setMessages(newMessages);
@@ -82,7 +85,7 @@ export default function IssueSingle(props: issuesinfo) {
       pubNub.history(
         {channel: channelId, count: 100, reverse: true},
         (status, res) => {
-          console.log('history status: ', status);
+          console.log('history status: ', res);
           let newMessage: any[] = [];
           res.messages.forEach(function (element, index) {
             newMessage[index] = element.entry[0];
@@ -121,7 +124,6 @@ export default function IssueSingle(props: issuesinfo) {
       })
       .catch();
 
-    // Publish message for backend
     pubNub
       .publish({
         message: {
@@ -401,12 +403,33 @@ export default function IssueSingle(props: issuesinfo) {
                 }}
               >
                 <div>
-                  {messages.map((message, key) => {
-                    return (
-                      <div key={key}>
-                        {renderMessage(message)}
-                      </div>
-                    )
+                  { messages &&
+                  messages.map((message, key) => {
+                    console.log("Init Date", dateStatus);
+                    if(todayDate === moment(message.createdAt).format('LL')){
+                      todayDate = "";
+                      dateStatus = moment(message.createdAt).format('LL');
+                      return (
+                        <div key={key}>
+                          <p className="text-center text-primary">Today</p>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    } else if(dateStatus === moment(message.createdAt).format('LL')){
+                      return (
+                        <div key={key}>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    } else{
+                      dateStatus = moment(message.createdAt).format('LL');
+                      return (
+                        <div key={key}>
+                          <p className="text-center text-info">{moment(message.createdAt).format('LL')}</p>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    }
                   })}       
                 </div>
               </div>

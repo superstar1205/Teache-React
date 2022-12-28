@@ -1,5 +1,4 @@
-import React, { Fragment, Dispatch, useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import React, { Fragment, useState, useEffect } from "react";
 import ViewUserDetail from "./ViewUserDetail";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import EditUserDetail from "./EditUserDetail";
@@ -13,7 +12,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { AiOutlineCaretDown } from "react-icons/ai";
 
 const Users: React.FC = () => {
-  const dispatch: Dispatch<any> = useDispatch();
 
   const [showModal, setShowModal] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);

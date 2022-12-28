@@ -3,7 +3,7 @@ import BaseUrl from "../../BaseUrl/BaseUrl";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { FormControl, Col, Row } from "react-bootstrap";
+import { FormControl } from "react-bootstrap";
 import BackdropLoader from "../../common/components/BackdropLoader";
 import InputGroup from "react-bootstrap/InputGroup";
 import { Button } from "react-bootstrap";
@@ -511,7 +511,7 @@ const Issues: React.FC = () => {
                           <td style={{ color: "#817EB7", textAlign: "center", verticalAlign: "middle", }} >
                             <Button
                               onClick={() =>
-                                handleShowModal(item.class_id, item.user_id, item.teacher_id, item.user_name, item.teacher_name )
+                                handleShowModal(item.class_id, item.user_id, item.teacher_user_id, item.user_name, item.teacher_name )
                               }
                               style={{
                                 background: "none",

@@ -78,10 +78,6 @@ const Login: React.FC = () => {
     return isError ? "disabled" : "";
   }
 
-  const inputStyle = {
-    boxShadow: "-1px -5px 55px 6px rgba(27, 30, 123, 0.09)",
-    borderRadius: "10px",
-  };
 
   return (
     <div className="container">

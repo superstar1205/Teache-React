@@ -7,20 +7,13 @@ import {
   SidebarFooter,
   SidebarContent,
 } from "react-pro-sidebar";
-import { Link, NavLink } from "react-router-dom";
-import { Image } from "react-bootstrap";
+import { NavLink } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import "./LeftMenu.css";
 
-const LeftMenu = ({}) => {
-  //create initial menuCollapse state using useState hook
+const LeftMenu = () => {
+  
   const [menuCollapse, setMenuCollapse] = useState(true);
-
-  //create a custom function that will change menucollapse state from false to true and true to false
-  const menuIconClick = () => {
-    //condition checking to change state from true to false and vice versa
-    menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
-  };
 
   const handleMouseEnter = () => {
     console.log("HI");
@@ -140,12 +133,6 @@ const LeftMenu = ({}) => {
                       </clipPath>
                     </defs>
                   </svg>
-                  {/* <img
-                    src="./big_logo.png"
-                    alt="logo"
-                    width="160px"
-                    height="30px"
-                  /> */}
                 </div>
               </a>
             )}
@@ -162,6 +149,7 @@ const LeftMenu = ({}) => {
                 style={{ padding: "0px" }}
               >
                 <img
+                  alt="User Active"
                   className="users_active"
                   src="/icons/users_active.svg"
                   style={{
@@ -172,6 +160,7 @@ const LeftMenu = ({}) => {
                   }}
                 />
                 <img
+                  alt="user"
                   className="users"
                   src="/icons/users.svg"
                   style={{
@@ -194,6 +183,7 @@ const LeftMenu = ({}) => {
                 style={{ padding: "0px" }}
               >
                 <img
+                alt="Instructor Active"
                   className="users_active"
                   src="/icons/instructor_active.svg"
                   style={{
@@ -204,6 +194,7 @@ const LeftMenu = ({}) => {
                   }}
                 />
                 <img
+                alt="Instructor"
                   className="users"
                   src="/icons/instructor.svg"
                   style={{
@@ -226,6 +217,7 @@ const LeftMenu = ({}) => {
                 style={{ padding: "0px" }}
               >
                 <img
+                  alt="Class Acitve"
                   className="users_active"
                   src="/icons/class_active.svg"
                   style={{
@@ -236,6 +228,7 @@ const LeftMenu = ({}) => {
                   }}
                 />
                 <img
+                  alt="Class"
                   className="users"
                   src="/icons/class.svg"
                   style={{
@@ -258,6 +251,7 @@ const LeftMenu = ({}) => {
                 style={{ padding: "0px" }}
               >
                 <img
+                alt="Issue Active"
                   className="users_active"
                   src="/icons/issue_active.svg"
                   style={{
@@ -268,6 +262,7 @@ const LeftMenu = ({}) => {
                   }}
                 />
                 <img
+                alt="Issue"
                   className="users"
                   src="/icons/issue.svg"
                   style={{
@@ -293,6 +288,7 @@ const LeftMenu = ({}) => {
                 style={{ padding: "0px" }}
               >
                 <img
+                alt="Logout"
                   className="users_active"
                   src="/icons/logout_active.svg"
                   style={{
@@ -303,6 +299,7 @@ const LeftMenu = ({}) => {
                   }}
                 />
                 <img
+                alt="logout"
                   className="users"
                   src="/icons/logout.svg"
                   style={{
