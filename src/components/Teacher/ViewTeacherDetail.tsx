@@ -19,6 +19,7 @@ const btnStyle: any = {
 };
 
 export default function ViewTeacherDetail(props: any) {
+  console.log(props);
   const [show, setShow] = useState(props.viewDetail);
   const [teacherDetail, setTeacherDetail]: any[] = useState([]);
   const handleClose = () => {

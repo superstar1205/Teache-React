@@ -1,10 +1,6 @@
 @import "~antd/dist/antd.css";
 @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap");
-* {
-    letter-spacing: 0px;
-}
-
 .side-menu-icon {
     /* font-size: 35px !important; */
     color: #ced7e9 !important;
@@ -435,7 +431,6 @@ td {
 .custom::placeholder {
     color: #C4C2E9!important;
     opacity: 1;
-    /* Firefox */
 }
 
 .classChat:hover {

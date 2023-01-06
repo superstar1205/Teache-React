@@ -139,6 +139,7 @@ const Teacher: React.FC = () => {
   };
   const handleSelectItem = (e: any) => {
     setItemNumber(e.target.value);
+    setPage(1);
   }
   
   useEffect(() => {
@@ -180,19 +181,21 @@ const Teacher: React.FC = () => {
     const [sortConfig, setSortConfig] = React.useState(config);
   
     const sortedItems = React.useMemo(() => {
-      let sortableItems = [...items];
-      if (sortConfig !== null) {
-        sortableItems.sort((a, b) => {
-          if (a[sortConfig.key] < b[sortConfig.key]) {
-            return sortConfig.direction === 'ascending' ? -1 : 1;
-          }
-          if (a[sortConfig.key] > b[sortConfig.key]) {
-            return sortConfig.direction === 'ascending' ? 1 : -1;
-          }
-          return 0;
-        });
+      if(items){
+        let sortableItems = [...items];
+        if (sortConfig !== null) {
+          sortableItems.sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (a[sortConfig.key] > b[sortConfig.key]) {
+              return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+          });
+        }
+        return sortableItems;
       }
-      return sortableItems;
     }, [items, sortConfig]);
   
     const requestSort = (key) => {
@@ -231,15 +234,6 @@ const Teacher: React.FC = () => {
               background: "#F3F7FF",
             }}
           >
-            {/* <div className="card-header py-3">
-              <h6
-                className="m-0 font-weight-bold"
-                style={{ fontSize: "20px", color: "#5a67de" }}
-              >
-                Teacher List
-              </h6>
-              <div className="header-buttons"></div>
-            </div> */}
             <Modal
               centered
               show={smShow}

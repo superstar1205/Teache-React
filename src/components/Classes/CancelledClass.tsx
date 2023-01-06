@@ -4,22 +4,26 @@ import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { Row, Col, Button, Card, Image } from "react-bootstrap";
-import Form from "react-bootstrap/Form";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
 import { ToastContainer, toast } from "react-toastify";
-import { setConstantValue } from "typescript";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
-  const DateFuncN = (val: any) => {
-    const formatedDate = new Date(val).toLocaleString(
-      "en-US",
-      options
-    );
-    let dateType = formatedDate.replaceAll("/", "-")
-    return dateType;
-  }
+const DateFuncN = (val: any) => {
+  const formatedDate = new Date(val).toLocaleString(
+    "en-US",
+    options
+  );
+  let dateType = formatedDate.replaceAll("/", "-")
+  return dateType;
+}
+
+const axiosConfig: any = {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+  },
+};
 
 const CancelledClass: React.FC = () => {
   const { id }  = useParams();
@@ -29,11 +33,8 @@ const CancelledClass: React.FC = () => {
   const [classData, setClassData] : any[] = useState([]);
   const [totalCost, setTotalCost] =useState(0);
   const [paymentStatus, setPaymentStatus] = useState(0);
-  const [payment, setPayment] = useState(false);
+  const [processStatus, setProcessStatus] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const [refundUser, setRefundUser] = useState(0);
-  const [releaseInstructor, setReleaseInstructor] = useState(0);
-  const [processed, setProcessed] = useState(0);
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
   };
@@ -43,11 +44,6 @@ const CancelledClass: React.FC = () => {
   };
 
   useEffect(() => {
-    const axiosConfig: any = {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
-      },
-    };
 
     BaseUrl.get(`/class/${id}`, axiosConfig).then((res) => {
       if(res.status === 200){
@@ -65,6 +61,9 @@ const CancelledClass: React.FC = () => {
                 setPaymentStatus(0);
               }
             }
+            if(res.data.data.payment === "Hold Payment"){
+              setPaymentStatus(4);
+            }
             console.log(res.data.data);
           }
         }
@@ -72,36 +71,56 @@ const CancelledClass: React.FC = () => {
     })
   }, [id]);
 
-  const handlePayment = (()=> {
-    setPayment(true);
-  });
-  const handleClose = (()=> {
-    setPayment(false);
-    setRefundUser(0);
-    setReleaseInstructor(0);
-  });
+  const handleRefundUser = () => {
+    setProcessStatus(1);
+  };
+  const handleReleaseInstructor = () => {
+    setProcessStatus(2);
+  };
+
+  const handlePayment = ()=> {
+    const data = {
+      class_id: Number(id),
+      status: "hold"
+    };
+    BaseUrl.post(`/update-class-payment`, data, axiosConfig).then((res)=>{
+      if(res.status === 200){
+        toast.success(res.data.message && res.data.message);
+      }
+    });
+    setPaymentStatus(4);
+  };
+
   const handleSubmitStatus = (()=> {
-    if(refundUser === 1)
-    {
-      setPayment(false);
-      setProcessed(1);
+    if(processStatus === 2) {
+      const data = {
+        class_id: Number(id),
+        status: "process"
+      };
+      BaseUrl.post(`/update-class-payment`, data, axiosConfig).then((res)=>{
+        if(res.status === 200){
+          toast.success(res.data.message && res.data.message);
+        } else{
+          console.log(res);
+        }
+      });
       setPaymentStatus(3);
-    } else if(releaseInstructor === 1) {
-      setPayment(false);
-      setProcessed(2);
-      setPaymentStatus(3);
+    }else if(processStatus === 1) {
+      const cdata = {
+        status: "refund",
+        class_id: Number(id)
+      };
+      BaseUrl.post(`/update-class-payment`, cdata, axiosConfig).then((res)=>{
+        if(res.status === 200){
+          toast.success(res.data.message && res.data.message);
+        } else{
+          console.log(res);
+        }
+      });
     } else{
-      toast.error("Select one!");
+      toast.error("Select one of them!");
     }
   });
-  const handleRefundUser = () => {
-      setRefundUser(1);
-      setReleaseInstructor(0);
-  }
-  const handleReleaseInstructor = () => {
-      setReleaseInstructor(1);
-      setRefundUser(0);
-  }
   
   return (
   <Fragment>
@@ -994,7 +1013,8 @@ const CancelledClass: React.FC = () => {
             </p>
           </div>
         </div> }
-        { paymentStatus === 2 && 
+      { paymentStatus === 2 && 
+        <div>
           <div
           style={{
             width: "360px",
@@ -1005,121 +1025,211 @@ const CancelledClass: React.FC = () => {
             paddingBottom: "25px",
             textAlign: "center",
           }}
-        >
-          <p
-            style={{
-              fontFamily: "Poppins",
-              fontStyle: "normal",
-              fontWeight: 600,
-              fontSize: "19px",
-              lineHeight: "160%",
-              paddingTop: "13%",
-              textAlign: "center",
-              color: "#6460F2",
-              marginBottom: "10px",
-            }}
           >
-            Teache Received : {totalCost}
-          </p>
-          
-            <Button
+            <p
               style={{
-                marginTop: "15px",
-                background: "#6460F2",
-                borderRadius: "8px",
+                fontFamily: "Poppins",
+                fontStyle: "normal",
+                fontWeight: 600,
+                fontSize: "19px",
+                lineHeight: "160%",
+                paddingTop: "13%",
+                textAlign: "center",
+                color: "#6460F2",
+                marginBottom: "10px",
+              }}
+            >
+              Teache Received : {totalCost}
+            </p>
+            
+              <Button
+                style={{
+                  marginTop: "15px",
+                  background: "#6460F2",
+                  borderRadius: "8px",
+                  border: "none",
+                  fontWeight: 600,
+                  height: "40px",
+                  fontSize: "16px",
+                }}
+                onClick = {handlePayment}
+              >
+                Hold Payment
+              </Button>
+          </div>
+          <div
+          style={{
+            width: "360px",
+            color: "#6460F2",
+            marginTop: "25px",
+            paddingTop: "30px",
+            paddingLeft: "30px",
+            paddingRight: "30px",
+            paddingBottom: "20px",
+            background: "#DDE9FF",
+            borderRadius:'10px'
+          }}
+          >
+            <Row>
+              <Button
+              onClick={handleRefundUser}
+              style={{
+                backgroundColor: "#6460F2",
+                color: "white",
                 border: "none",
                 fontWeight: 600,
-                height: "40px",
                 fontSize: "16px",
+                lineHeight: "160%",
+                borderRadius: "8px",
+                height: "40px",
+                marginBottom: "16px"
               }}
-              onClick = {handlePayment}
+              >Refund to user</Button>
+            </Row>
+            <Row>
+            <Button
+              onClick={handleReleaseInstructor}
+              style={{
+                backgroundColor: "white",
+                color: "#6460F2",
+                border: "none",
+                fontWeight: 600,
+                fontSize: "16px",
+                lineHeight: "160%",
+                borderRadius: "8px",
+                height: "40px",
+                marginBottom: "16px"
+              }}
+              >Release to Instructor</Button>
+            </Row>
+            <div style={{ textAlign: "right", marginTop: "20px" }}>
+              <Button
+                variant="primary"
+                onClick={handleSubmitStatus}
+                style={{
+                  backgroundColor: "#6460F2",
+                  color: "white",
+                  border: "none",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  lineHeight: "160%",
+                  borderRadius: "8px",
+                  height: "50px",
+                }}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      }
+      { paymentStatus === 4 && 
+        <div>
+          <div
+            style={{
+              width: "360px",
+              // height: "187px",
+              background: "#DDE9FF",
+              borderRadius: "15px",
+              marginTop: "25px",
+              paddingBottom: "15px",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "Poppins",
+                fontStyle: "normal",
+                fontWeight: 600,
+                fontSize: "24px",
+                lineHeight: "160%",
+                paddingTop: "25px",
+                textAlign: "center",
+                color: "#6460F2",
+              }}
             >
               Hold Payment
-            </Button>
-        </div> 
-      }
-      { payment === true &&
-        <div
-        style={{
-          width: "360px",
-          color: "#6460F2",
-          marginTop: "25px",
-          paddingTop: "30px",
-          paddingLeft: "30px",
-          paddingRight: "30px",
-          paddingBottom: "20px",
-          background: "#DDE9FF",
-          borderRadius:'10px'
-        }}
-      >
-        <Row>
-          <Button
-          onClick={handleRefundUser}
+            </p>
+            <p
+              style={{
+                fontFamily: "Poppins",
+                fontStyle: "normal",
+                fontWeight: 600,
+                fontSize: "19px",
+                lineHeight: "160%",
+                paddingTop: "16px",
+                textAlign: "center",
+                color: "#6460F2",
+              }}
+            >
+              Cost: {totalCost}
+            </p>
+          </div>
+          <div
           style={{
-            backgroundColor: "#6460F2",
-            color: "white",
-            border: "none",
-            fontWeight: 600,
-            fontSize: "16px",
-            lineHeight: "160%",
-            borderRadius: "8px",
-            height: "40px",
-            marginBottom: "16px"
-          }}
-          >Refund to user</Button>
-        </Row>
-        <Row>
-        <Button
-          onClick={handleReleaseInstructor}
-          style={{
-            backgroundColor: "white",
+            width: "360px",
             color: "#6460F2",
-            border: "none",
-            fontWeight: 600,
-            fontSize: "16px",
-            lineHeight: "160%",
-            borderRadius: "8px",
-            height: "40px",
-            marginBottom: "16px"
+            marginTop: "25px",
+            paddingTop: "30px",
+            paddingLeft: "30px",
+            paddingRight: "30px",
+            paddingBottom: "20px",
+            background: "#DDE9FF",
+            borderRadius:'10px'
           }}
-          >Release to Instructor</Button>
-        </Row>
-        <div style={{ textAlign: "right", marginTop: "20px" }}>
-          <Button
-            variant="secondary"
-            onClick={handleClose}
-            style={{
-              backgroundColor: "#C4C2E9",
-              color: "#807CD6",
-              border: "none",
-              fontWeight: 600,
-              fontSize: "16px",
-              lineHeight: "160%",
-              borderRadius: "8px",
-              height: "50px",
-              marginRight: "10px",
-            }}
           >
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSubmitStatus}
-            style={{
-              backgroundColor: "#6460F2",
-              color: "white",
-              border: "none",
-              fontWeight: 600,
-              fontSize: "16px",
-              lineHeight: "160%",
-              borderRadius: "8px",
-              height: "50px",
-            }}
-          >
-            Save Changes
-          </Button>
+            <Row>
+              <Button
+              onClick={handleRefundUser}
+              style={{
+                backgroundColor: "#6460F2",
+                color: "white",
+                border: "none",
+                fontWeight: 600,
+                fontSize: "16px",
+                lineHeight: "160%",
+                borderRadius: "8px",
+                height: "40px",
+                marginBottom: "16px"
+              }}
+              >Refund to user</Button>
+            </Row>
+            <Row>
+            <Button
+              onClick={handleReleaseInstructor}
+              style={{
+                backgroundColor: "white",
+                color: "#6460F2",
+                border: "none",
+                fontWeight: 600,
+                fontSize: "16px",
+                lineHeight: "160%",
+                borderRadius: "8px",
+                height: "40px",
+                marginBottom: "16px"
+              }}
+              >Release to Instructor</Button>
+            </Row>
+            <div style={{ textAlign: "right", marginTop: "20px" }}>
+              <Button
+                variant="primary"
+                onClick={handleSubmitStatus}
+                style={{
+                  backgroundColor: "#6460F2",
+                  color: "white",
+                  border: "none",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  lineHeight: "160%",
+                  borderRadius: "8px",
+                  height: "50px",
+                }}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
       }
       { paymentStatus === 3 ?
         <div
@@ -1145,7 +1255,8 @@ const CancelledClass: React.FC = () => {
             color: "#6460F2",
           }}
         >
-          { processed && processed ===1 ? "Refunded to User" : "Released to Instructor"}
+          {processStatus===1 && "Refunded to user"}
+          {processStatus===2 && "Release to Instructor"}
         </p>
         <p
           style={{

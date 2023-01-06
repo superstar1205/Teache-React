@@ -3,14 +3,15 @@ import BaseUrl from "../../BaseUrl/BaseUrl";
 import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { FormControl } from "react-bootstrap";
+import { FormControl, Modal } from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import { AiOutlineCaretDown } from "react-icons/ai";
 import { getAbbr, getTeacherBadge } from "../../utils";
-import EditUserDetail from "../Users/EditUserDetail";
-import ViewUserDetail from "../Users/ViewUserDetail";
+import EditTeacherDetail from "../Teacher/EditTeacherDetail";
+import ViewTeacherDetail from "../Teacher/ViewTeacherDetail";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import BackdropLoader from "../../common/components/BackdropLoader";
 
 const Classinfo: React.FC = () => {
   let pathname =useLocation().pathname;
@@ -20,6 +21,7 @@ const Classinfo: React.FC = () => {
   dispatch(updateCurrentPath("user", "list"));
   const [showModal, setShowModal] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
+  const [deleteModal, setDeleteModal]=useState(false);
   const [teacherId, setTeacherId] = useState("");
   const [teacherStatus, setTeacherStatus] = useState("");
   const [detail, setDetail] = useState();
@@ -31,11 +33,11 @@ const Classinfo: React.FC = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pagesNumber, setPagesNumber] = useState(1);
   const [itemNumber, setItemNumber] = useState(10);
+  const [loader, setLoader] = useState(false);
 
   const handleParentCallback = (childData: any) => {
     if (childData) {
       setShowModal(false);
-      toast.success("Status Changed");
     } else {
       setShowModal(false);
     }
@@ -51,9 +53,43 @@ const Classinfo: React.FC = () => {
     setTeacherStatus(status);
   };
 
-  const handleViewShowModal = (item: any) => {
+  const handleViewShowModal = (id:any, item: any) => {
     setViewDetail(true);
+    setTeacherId(id);
     setDetail(item);
+  };
+
+  const handleDelete =(id:any)=> {
+    setDeleteModal(true);
+    setTeacherId(id);
+  }
+
+  const cancelDelete = () => {
+    setTeacherId(null);
+    setDeleteModal(false);
+  };
+
+  const ConfirmDelete = async () => {
+    setLoader(true);
+    const axiosConfig: any = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+      },
+    };
+
+    BaseUrl.delete(`/delete-teacher/${teacherId}`, axiosConfig)
+      .then((res) => {
+        toast.success(res.data.message);
+        cancelDelete();
+        setLoader(false);
+      })
+      .catch((err) => {
+        if (err.response) {
+          toast.error(err.response.data.message);
+          cancelDelete();
+          setLoader(false);
+        }
+      });
   };
 
   useEffect(() => {
@@ -127,6 +163,7 @@ const Classinfo: React.FC = () => {
   };
   const handleSelectItem = (e: any) => {
     setItemNumber(e.target.value);
+    setSelectedOption(1);
   }
 
   const useSortableData = (teacherItems, config = null) => {
@@ -177,6 +214,7 @@ const Classinfo: React.FC = () => {
 
   return (
     <Fragment>
+      { loader && <BackdropLoader />}
       <ToastContainer />
       <div className="row">
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
@@ -188,6 +226,36 @@ const Classinfo: React.FC = () => {
               background: "#F3F7FF",
             }}
           >
+            <Modal
+              centered
+              show={deleteModal}
+              backdrop="static"
+              onHide={() => setDeleteModal(false)}
+              aria-labelledby="example-modal-sizes-title-lg"
+            >
+              <div className="p-3">
+                <Modal.Title id="example-modal-sizes-title-sm">
+                  Are you sure to delete this teacher ?
+                </Modal.Title>
+
+                <Modal.Body>
+                  <div className=" d-flex flex-row w-100  mt-2">
+                    <button
+                      onClick={cancelDelete}
+                      className="btn btn-danger  mr-3 btn-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={ConfirmDelete}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </Modal.Body>
+              </div>
+            </Modal>
             <div className="card-body" style={{ padding: "0px" }}>
               <div className="d-flex mb-2" style={{ marginTop: "30px" }}>
                 <div
@@ -304,7 +372,7 @@ const Classinfo: React.FC = () => {
                 </div>
               </div>
               {showModal && (
-                <EditUserDetail
+                <EditTeacherDetail
                   userId={teacherId}
                   teacherStatus={teacherStatus}
                   showModal={showModal}
@@ -312,8 +380,9 @@ const Classinfo: React.FC = () => {
                 />
               )}
               {viewDetail && (
-                <ViewUserDetail
+                <ViewTeacherDetail
                   detail={detail}
+                  userId={teacherId}
                   viewDetail={viewDetail}
                   handleViewParentCallback={handleViewParentCallback}
                 />
@@ -510,7 +579,7 @@ const Classinfo: React.FC = () => {
                                 height: "36px",
                               }}
                               className="btn btn-primary btn-sm"
-                              onClick={() => handleViewShowModal(item)}
+                              onClick={() => handleViewShowModal(item.id, item)}
                             >
                               <img
                                 src="/eye.png"
@@ -557,6 +626,7 @@ const Classinfo: React.FC = () => {
                                 width: "36px",
                                 height: "36px",
                               }}
+                              onClick={()=>handleDelete(item.id)}
                               className="btn btn-danger btn-sm"
                             >
                               <svg

@@ -43,7 +43,7 @@ const Admin: React.FC = () => {
                 <UserInfo />
               </Route>
               <Route path={`/classes/:id`}>
-                <CompletedClass />
+                <CancelledClass />
               </Route>
               <Route path={`/cancelledclasses/:id`}>
                 <CancelledClass />

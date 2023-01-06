@@ -8,7 +8,11 @@ export default function EditUserDetail(props: any) {
   const [show, setShow] = useState(props.showModal);
   const pubNub = usePubNub();
   const [messages, setMessages] = useState<any[]>([]);
-
+  var dateStatus = "";
+  const date = {
+    today : new Date(),
+  };
+  var todayDate = moment(date.today).format('LL');
   let channelId: string = '';
   if (props.userId && props.teacherId) {
     channelId = props.userId + '_channel_inst' + props.teacherId; //"461_channel_inst463";
@@ -75,7 +79,6 @@ export default function EditUserDetail(props: any) {
           <div className="yours messages">
             <div id="writer">{props.teacherName}</div>
             <div className="yours message last">
-              
                 {msgProp.text}
               <p>{moment(msgProp.createdAt).format('LT')}</p>
             </div>
@@ -133,13 +136,34 @@ export default function EditUserDetail(props: any) {
           }}
         >
           <div>
-            {messages.map((message, key) => {
-              return (
-                <div key={key}>
-                  {renderMessage(message)}
-                </div>
-              )
-            })}       
+          { messages &&
+                  messages.map((message, key) => {
+                    console.log("Init Date", dateStatus);
+                    if(todayDate === moment(message.createdAt).format('LL')){
+                      todayDate = "";
+                      dateStatus = moment(message.createdAt).format('LL');
+                      return (
+                        <div key={key}>
+                          <p className="text-center text-primary">Today</p>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    } else if(dateStatus === moment(message.createdAt).format('LL')){
+                      return (
+                        <div key={key}>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    } else{
+                      dateStatus = moment(message.createdAt).format('LL');
+                      return (
+                        <div key={key}>
+                          <p className="text-center text-info">{moment(message.createdAt).format('LL')}</p>
+                          {renderMessage(message)}
+                        </div>
+                      );
+                    }
+                  })}      
           </div>
         </Modal.Body>
       </Modal>
