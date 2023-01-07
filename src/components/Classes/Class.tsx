@@ -107,6 +107,7 @@ const Class: React.FC = () => {
     ).then((res) => {
       if (res.status === 200) {
         if (res.data) {
+          console.log(res.data);
           setTotalCount(res.data.count);
           setClassData(res.data.data);
           setPageNumber(res.data.page);
