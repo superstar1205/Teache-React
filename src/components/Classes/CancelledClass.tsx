@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { Row, Col, Button, Card, Image } from "react-bootstrap";
+import { Modal, Row, Col, Button, Card, Image } from "react-bootstrap";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
 import { ToastContainer, toast } from "react-toastify";
@@ -35,6 +35,8 @@ const CancelledClass: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState(0);
   const [processStatus, setProcessStatus] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [paymentModal, setPaymentModal] = useState(false);
+  const [selectedPayment, setSelectedpayment] = useState("");
   const handleParentCallback = (childData: any) => {
     setShowModal(childData);
   };
@@ -49,8 +51,8 @@ const CancelledClass: React.FC = () => {
       if(res.status === 200){
         if(res.data) {
           if(res.data.data) {
-            setClassData(res.data.data);
             console.log(res.data.data);
+            setClassData(res.data.data);
             setTotalCost(res.data.data.cost);
             if(res.data.data.processed_instructor === true){
               setPaymentStatus(1);
@@ -64,7 +66,6 @@ const CancelledClass: React.FC = () => {
             if(res.data.data.payment === "Hold Payment"){
               setPaymentStatus(4);
             }
-            console.log(res.data.data);
           }
         }
       }
@@ -72,13 +73,68 @@ const CancelledClass: React.FC = () => {
   }, [id]);
 
   const handleRefundUser = () => {
-    setProcessStatus(1);
+    setSelectedpayment("refund");
+    setPaymentModal(true);
   };
   const handleReleaseInstructor = () => {
-    setProcessStatus(2);
+    setSelectedpayment("process");
+    setPaymentModal(true);
   };
 
-  const handlePayment = ()=> {
+  const cancelPayment = () => {
+    setSelectedpayment("");
+    setPaymentModal(false);
+  }
+
+  const ConfirmPayment = () => {
+    if(selectedPayment === "refund"){
+      const cdata = {
+        status: "refund",
+        class_id: Number(id)
+      };
+      BaseUrl.post(`/update-class-payment`, cdata, axiosConfig)
+      .then((res)=>{
+        if(res.status === 200){
+          toast.success(res.data.message && res.data.message);
+        }
+      })
+      .catch(function (error) {
+          if (error.response) {
+            toast.error(error.response.data && error.response.data.message);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });
+      setProcessStatus(1);
+      setPaymentModal(false);
+    } else if(selectedPayment === "process"){
+      const data = {
+        class_id: Number(id),
+        status: "process"
+      };
+      BaseUrl.post(`/update-class-payment`, data, axiosConfig)
+      .then((res)=>{
+        if(res.status === 200){
+          toast.success(res.data.message && res.data.message);
+        }
+      })
+      .catch(function (error) {
+          if (error.response) {
+            toast.error(error.response.data && error.response.data.message);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });
+      setProcessStatus(2);
+      setPaymentModal(false);
+    }
+  }
+
+  const handleHoldPayment = ()=> {
     const data = {
       class_id: Number(id),
       status: "hold"
@@ -90,41 +146,40 @@ const CancelledClass: React.FC = () => {
     });
     setPaymentStatus(4);
   };
-
-  const handleSubmitStatus = (()=> {
-    if(processStatus === 2) {
-      const data = {
-        class_id: Number(id),
-        status: "process"
-      };
-      BaseUrl.post(`/update-class-payment`, data, axiosConfig).then((res)=>{
-        if(res.status === 200){
-          toast.success(res.data.message && res.data.message);
-        } else{
-          console.log(res);
-        }
-      });
-      setPaymentStatus(3);
-    }else if(processStatus === 1) {
-      const cdata = {
-        status: "refund",
-        class_id: Number(id)
-      };
-      BaseUrl.post(`/update-class-payment`, cdata, axiosConfig).then((res)=>{
-        if(res.status === 200){
-          toast.success(res.data.message && res.data.message);
-        } else{
-          console.log(res);
-        }
-      });
-    } else{
-      toast.error("Select one of them!");
-    }
-  });
   
   return (
   <Fragment>
     <ToastContainer />
+    <Modal
+      centered
+      show={paymentModal}
+      backdrop="static"
+      onHide={() => setPaymentModal(false)}
+      aria-labelledby="example-modal-sizes-title-lg"
+    >
+      <div className="p-3">
+        <Modal.Title id="example-modal-sizes-title-sm">
+          {selectedPayment === "refund" ? "Are you sure to refund to user?" : "Are you sure to release to Instructor?"}
+        </Modal.Title>
+
+        <Modal.Body>
+          <div className=" d-flex flex-row w-100  mt-2">
+            <button
+              onClick={cancelPayment}
+              className="btn btn-danger  mr-3 btn-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={ConfirmPayment}
+              className="btn btn-primary btn-sm"
+            >
+              Confirm
+            </button>
+          </div>
+        </Modal.Body>
+      </div>
+    </Modal>
     <Row style={{ margin: "10px" }}>
       <Col md={{ span: 8 }} style={{ marginTop: "25px" }}>
         <Row>
@@ -1052,7 +1107,7 @@ const CancelledClass: React.FC = () => {
                   height: "40px",
                   fontSize: "16px",
                 }}
-                onClick = {handlePayment}
+                onClick = {handleHoldPayment}
               >
                 Hold Payment
               </Button>
@@ -1102,24 +1157,6 @@ const CancelledClass: React.FC = () => {
               }}
               >Release to Instructor</Button>
             </Row>
-            <div style={{ textAlign: "right", marginTop: "20px" }}>
-              <Button
-                variant="primary"
-                onClick={handleSubmitStatus}
-                style={{
-                  backgroundColor: "#6460F2",
-                  color: "white",
-                  border: "none",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  lineHeight: "160%",
-                  borderRadius: "8px",
-                  height: "50px",
-                }}
-              >
-                Save Changes
-              </Button>
-            </div>
           </div>
         </div>
       }
@@ -1210,24 +1247,6 @@ const CancelledClass: React.FC = () => {
               }}
               >Release to Instructor</Button>
             </Row>
-            <div style={{ textAlign: "right", marginTop: "20px" }}>
-              <Button
-                variant="primary"
-                onClick={handleSubmitStatus}
-                style={{
-                  backgroundColor: "#6460F2",
-                  color: "white",
-                  border: "none",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  lineHeight: "160%",
-                  borderRadius: "8px",
-                  height: "50px",
-                }}
-              >
-                Save Changes
-              </Button>
-            </div>
           </div>
         </div>
       }
