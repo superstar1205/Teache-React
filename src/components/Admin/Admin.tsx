@@ -13,10 +13,10 @@ import IssueSingle from "../Issues/issueSingle";
 import Message from "../Message/message";
 import TransactionHistory from "../Transactions/TransactionHistory";
 import UserInfo from "../Users/UserInfo";
-import CompletedClass from "../Classes/CompletedClass";
 import CancelledClass from "../Classes/CancelledClass";
 import Class from "../Classes/Class";
 import Classinfo from "../Classes/Classinfo";
+import BookingClasses from "../Classes/BookingClasses";
 
 const Admin: React.FC = () => {
   return (
@@ -42,8 +42,8 @@ const Admin: React.FC = () => {
               <Route path={`/users/:id`}>
                 <UserInfo />
               </Route>
-              <Route path={`/classes/:id`}>
-                <CancelledClass />
+              <Route path={`/booking/:id`}>
+                <BookingClasses />
               </Route>
               <Route path={`/cancelledclasses/:id`}>
                 <CancelledClass />

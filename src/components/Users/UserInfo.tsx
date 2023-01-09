@@ -11,6 +11,7 @@ import Image from "react-bootstrap/Image";
 import { ToastContainer, toast } from "react-toastify";
 import Chat from "../Chat";
 import BackdropLoader from "../../common/components/BackdropLoader";
+import { AiOutlineCaretDown } from "react-icons/ai";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
@@ -169,6 +170,48 @@ const Users: React.FC = (props: object) => {
       }
     });
   }, [id, showEModal, itemNumber, page]);
+
+  const useSortableData = (items, config = null) => {
+    const [sortConfig, setSortConfig] = React.useState(config);
+
+    const sortedItems = React.useMemo(() => {
+      let sortableItems = [...items];
+      if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }, [items, sortConfig]);
+  
+    const requestSort = (key) => {
+      let direction = 'ascending';
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'ascending'
+      ) {
+        direction = 'descending';
+      }
+      setSortConfig({ key, direction });
+    };
+  
+    return { items: sortedItems, requestSort, sortConfig };
+  };
+
+  const { items, requestSort, sortConfig } = useSortableData(userData);
+  const getClassNamesFor = (name) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
+  };
 
   const handlePrevious = (page:any) => {
     if(page <= 1){
@@ -577,12 +620,15 @@ const Users: React.FC = (props: object) => {
                       <th
                         scope="col"
                         style={{
-                          paddingLeft: 15 + "px",
                           verticalAlign: "middle",
                           border: "none",
+                          textAlign: "center"
                         }}
                       >
                         Class Type
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('class_type')}
+                        className={getClassNamesFor('class_type')}/>
                       </th>
                       <th
                         scope="col"
@@ -593,24 +639,45 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         Class ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('id')}
+                        className={getClassNamesFor('id')}/>
                       </th>
                       <th
                         scope="col"
-                        style={{ verticalAlign: "middle", border: "none" }}
+                        style={{ verticalAlign: "middle", border: "none", textAlign: "center" }}
                       >
                         Instructor
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('name')}
+                        className={getClassNamesFor('name')}/>
                       </th>
                       <th
                         scope="col"
-                        style={{ verticalAlign: "middle", border: "none" }}
+                        style={{ verticalAlign: "middle", border: "none", textAlign: "center" }}
                       >
                         Ins ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('teacher_id')}
+                        className={getClassNamesFor('teacher_id')}/>
                       </th>
                       <th
                         scope="col"
-                        style={{ verticalAlign: "middle", border: "none" }}
+                        style={{ verticalAlign: "middle", border: "none", textAlign: "center" }}
+                      >
+                        Booking ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('booking_id')}
+                        className={getClassNamesFor('booking_id')}/>
+                      </th>
+                      <th
+                        scope="col"
+                        style={{ verticalAlign: "middle", border: "none",  textAlign: "center" }}
                       >
                         Date
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('class_date')}
+                        className={getClassNamesFor('class_date')}/>
                       </th>
                       <th
                         scope="col"
@@ -621,26 +688,27 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         Status
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('status')}
+                        className={getClassNamesFor('status')}/>
                       </th>
                       <th
                         scope="col"
-                        style={{
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          border: "none",
-                        }}
+                        style={{ verticalAlign: "middle", textAlign: "center", border: "none",}}
                       >
                         Cost
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('cost')}
+                        className={getClassNamesFor('cost')}/>
                       </th>
                       <th
                         scope="col"
-                        style={{
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          border: "none",
-                        }}
+                        style={{ verticalAlign: "middle", textAlign: "center", border: "none", }}
                       >
                         Payment
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('payment')}
+                        className={getClassNamesFor('payment')}/>
                       </th>
                       <th
                         scope="col"
@@ -658,16 +726,11 @@ const Users: React.FC = (props: object) => {
                       <BackdropLoader />
                       </td>
                     </tr>}
-                    {userData &&
-                      userData.length > 0 &&
-                      userData.map((item: any, index) => (
+                    {items &&
+                      items.length > 0 &&
+                      items.map((item: any, index) => (
                         <tr key={index}>
-                          <td
-                            style={{
-                              paddingLeft: 15 + "px",
-                              color: "#817EB7",
-                            }}
-                          >
+                          <td style={{ color: "#817EB7", textAlign: "center"}}>
                             {item.class_type}
                           </td>
                           <td style={{ textAlign: "center" }}>
@@ -683,42 +746,50 @@ const Users: React.FC = (props: object) => {
                               <span>{item.id}</span>
                             </Link>
                           </td>
-                          <td style={{ color: "#817EB7" }}>
-                            <span>{item.name}</span>
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                            <Link
+                              to={{
+                                pathname: `/booking/${item.booking_id}`,
+                                state: {
+                                  userinfo: item,
+                                },
+                              }}
+                              style={{ color: "#817EB7" }}
+                            >
+                              {item.name}
+                            </Link>
                           </td>
-                          <td style={{ color: "#817EB7" }}>
+                          <td style={{ color: "#817EB7",  textAlign: "center" }}>
                             <span>{item.teacher_id}</span>
                           </td>
-                          <td style={{ color: "#817EB7" }}>{DateFuncN(item.class_date)}</td>
+                          <td style={{ color: "#817EB7",  textAlign: "center" }}>
+                            <Link
+                              to={{
+                                pathname: `/booking/${item.booking_id}`,
+                                state: {
+                                  userinfo: item,
+                                },
+                              }}
+                              style={{ color: "#817EB7" }}
+                            >
+                              {item.booking_id}
+                            </Link>
+                          </td>
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                            {DateFuncN(item.class_date)}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             {getStatus(item.status)}
                           </td>
-                          <td
-                            style={{
-                              color: "#817EB7",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}
-                          >
+                          <td style={{ color: "#817EB7", textAlign: "center", verticalAlign: "middle",}}>
                             ${item.cost}
                           </td>
-                          <td
-                            style={{
-                              color: "#817EB7",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}
-                          >
+                          <td style={{ color: "#817EB7", textAlign: "center", verticalAlign: "middle", }}>
                             {item.payment}
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <Button
                               onClick={() => handleShowChatModal(item.id, item.teacher_user_id, item.name)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                color: "#817EB7",
-                              }}
+                              style={{ background: "none",  border: "none", color: "#817EB7", }}
                             >
                               Chat
                             </Button>
