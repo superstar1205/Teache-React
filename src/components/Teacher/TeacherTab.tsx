@@ -40,7 +40,6 @@ export default function TeacherTab(props: any) {
     fontWeight: 400,
     fontSize: "15px",
     lineHeight: "160%",
-
     color: "#817EB7",
   };
   const colStyle: any = {

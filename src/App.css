@@ -437,6 +437,14 @@ td {
     cursor: pointer;
 }
 
+.accordion-button:not(.collapsed){
+    color: #554DF1 !important
+}
+
+.accordion-button {
+    color: rgb(129, 126, 183) !important;
+}
+
 th>svg {
     color: #BFBDFF;
     padding-left: 2px !important;

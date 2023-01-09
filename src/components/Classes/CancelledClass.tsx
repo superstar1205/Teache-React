@@ -1,23 +1,80 @@
-import React, { Fragment, Dispatch, useState, useEffect } from "react";
+import React, { Fragment, Dispatch, useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { Modal, Row, Col, Button, Card, Image } from "react-bootstrap";
+import { Row, Col, Card, Image } from "react-bootstrap";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
-import { ToastContainer, toast } from "react-toastify";
+import ClassPayment from './ClassPayment';
+import { ToastContainer } from "react-toastify";
+const style:any = {
+  hrow: {
+    width: "100%",
+    border: "none",
+    background: "#FFFFFF",
+    boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
+    borderRadius: "15px",
+  },
+  himg: {
+    borderRadius: "15px",
+    width: "91px",
+    height: "91px",
+    margin: "12px 0px 12px 12px",
+  },
+  hbtext: {
+    fontSize: "16px",
+    color: "#6460F2",
+    marginRight: "8px",
+  },
 
-var options: any = { year: "numeric", month: "numeric", day: "numeric" };
-
-const DateFuncN = (val: any) => {
-  const formatedDate = new Date(val).toLocaleString(
-    "en-US",
-    options
-  );
-  let dateType = formatedDate.replaceAll("/", "-")
-  return dateType;
-}
+  row: {
+    lineHeight: "56px",
+    height: "56px",
+    boxSizing: "border-box",
+    background: "#6460F2",
+    border: "none",
+    boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+    borderRadius: "10px 0px 0px 10px",
+    marginLeft: "15px",
+    width: "82%",
+  },
+  p: {
+    lineHeight: 1.5,
+    display: "inline-block",
+    background: "#6460F2",
+    color: "white",
+    fontSize: "17px",
+    marginLeft: "8px",
+  },
+  rowcol: {
+    paddingLeft: "16px",
+    lineHeight: "56px",
+    height: "56px",
+    boxSizing: "border-box",
+    width: "100%",
+    border: "none",
+    borderRadius: "10px",
+    margin: "5px",
+    boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
+    background: "white",
+  },
+  bf: {
+    lineHeight: 1.5,
+    display: "inline-block",
+    fontSize: "14.5px",
+    color: "#6460F2",
+    marginRight: "10px",
+  },
+  bs: {
+    lineHeight: 1.5,
+    display: "inline-block",
+    fontSize: "14.5px",
+    marginRight: "10px",
+    color: "#817EB7",
+    fontWeight: 400,
+  },
+};
 
 const axiosConfig: any = {
   headers: {
@@ -27,354 +84,122 @@ const axiosConfig: any = {
 
 const CancelledClass: React.FC = () => {
   const { id }  = useParams();
+
+  console.log('ID', id);
   const dispatch: Dispatch<any> = useDispatch();
   dispatch(updateCurrentPath("classId", ""));
   const imageBaseUrl = "https://d7eyk7icw439d.cloudfront.net/";
-  const [classData, setClassData] : any[] = useState([]);
-  const [totalCost, setTotalCost] =useState(0);
-  const [paymentStatus, setPaymentStatus] = useState(0);
-  const [processStatus, setProcessStatus] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [paymentModal, setPaymentModal] = useState(false);
-  const [selectedPayment, setSelectedpayment] = useState("");
+  const [classInfo, setClassInfo] : any[] = useState([]);
+  const [showModal, setShowChatModal] = useState(false);
   const handleParentCallback = (childData: any) => {
-    setShowModal(childData);
+    setShowChatModal(childData);
   };
 
-  const handleShowModal = () => {
-    setShowModal(true);
+  const handleChatModal = () => {
+    setShowChatModal(true);
   };
 
   useEffect(() => {
-
     BaseUrl.get(`/class/${id}`, axiosConfig).then((res) => {
-      if(res.status === 200){
-        if(res.data) {
-          if(res.data.data) {
-            console.log(res.data.data);
-            setClassData(res.data.data);
-            setTotalCost(res.data.data.cost);
-            if(res.data.data.processed_instructor === true){
-              setPaymentStatus(1);
-            } else {
-              if(res.data.data.processed_system === true){
-                setPaymentStatus(2)
-              } else{
-                setPaymentStatus(0);
-              }
-            }
-            if(res.data.data.payment === "Hold Payment"){
-              setPaymentStatus(4);
-            }
-          }
-        }
+      if(res.status === 200 && res.data && res.data.data){
+        setClassInfo(res.data.data);
       }
     })
   }, [id]);
 
-  const handleRefundUser = () => {
-    setSelectedpayment("refund");
-    setPaymentModal(true);
-  };
-  const handleReleaseInstructor = () => {
-    setSelectedpayment("process");
-    setPaymentModal(true);
-  };
-
-  const cancelPayment = () => {
-    setSelectedpayment("");
-    setPaymentModal(false);
-  }
-
-  const ConfirmPayment = () => {
-    if(selectedPayment === "refund"){
-      const cdata = {
-        status: "refund",
-        class_id: Number(id)
-      };
-      BaseUrl.post(`/update-class-payment`, cdata, axiosConfig)
-      .then((res)=>{
-        if(res.status === 200){
-          toast.success(res.data.message && res.data.message);
-        }
-      })
-      .catch(function (error) {
-          if (error.response) {
-            toast.error(error.response.data && error.response.data.message);
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log('Error', error.message);
-          }
-      });
-      setProcessStatus(1);
-      setPaymentModal(false);
-    } else if(selectedPayment === "process"){
-      const data = {
-        class_id: Number(id),
-        status: "process"
-      };
-      BaseUrl.post(`/update-class-payment`, data, axiosConfig)
-      .then((res)=>{
-        if(res.status === 200){
-          toast.success(res.data.message && res.data.message);
-        }
-      })
-      .catch(function (error) {
-          if (error.response) {
-            toast.error(error.response.data && error.response.data.message);
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log('Error', error.message);
-          }
-      });
-      setProcessStatus(2);
-      setPaymentModal(false);
-    }
-  }
-
-  const handleHoldPayment = ()=> {
-    const data = {
-      class_id: Number(id),
-      status: "hold"
-    };
-    BaseUrl.post(`/update-class-payment`, data, axiosConfig).then((res)=>{
-      if(res.status === 200){
-        toast.success(res.data.message && res.data.message);
-      }
-    });
-    setPaymentStatus(4);
-  };
-  
   return (
-  <Fragment>
+  <Fragment> 
     <ToastContainer />
-    <Modal
-      centered
-      show={paymentModal}
-      backdrop="static"
-      onHide={() => setPaymentModal(false)}
-      aria-labelledby="example-modal-sizes-title-lg"
-    >
-      <div className="p-3">
-        <Modal.Title id="example-modal-sizes-title-sm">
-          {selectedPayment === "refund" ? "Are you sure to refund to user?" : "Are you sure to release to Instructor?"}
-        </Modal.Title>
-
-        <Modal.Body>
-          <div className=" d-flex flex-row w-100  mt-2">
-            <button
-              onClick={cancelPayment}
-              className="btn btn-danger  mr-3 btn-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={ConfirmPayment}
-              className="btn btn-primary btn-sm"
-            >
-              Confirm
-            </button>
-          </div>
-        </Modal.Body>
-      </div>
-    </Modal>
-    <Row style={{ margin: "10px" }}>
-      <Col md={{ span: 8 }} style={{ marginTop: "25px" }}>
+    <Row style={{ marginLeft: "10px" }}>
+      <Col md={8} style={{ marginTop: "16px" }}>
         <Row>
-          <Col md={{ span: 6 }}>
+          <Col md={6}>
             <Card
-              style={{
-                width: "100%",
-                border: "none",
-                background: "#FFFFFF",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                borderRadius: "10px",
-              }}
-            > 
-              <Row className="no-gutters">
-                <Col md={4} lg={4}>
-                  <Card.Img
+              style={style.hrow}
+            >
+              <div className="d-flex">
+                <Card.Img
                     variant="top"
-                    src={classData && classData.user_profile_pic ? imageBaseUrl+classData.user_profile_pic : "/profile.png"}
-                    style={{
-                      borderRadius: "10px",
-                      width: "91px",
-                      height: "91px",
-                      margin: "15px 20px 10px 30px",
-                    }}
+                    src={classInfo && classInfo.user_profile_pic ? imageBaseUrl+classInfo.user_profile_pic : "/profile.png"}
+                    style={style.himg}
                   />
-                </Col>
-                <Col>
                   <Card.Body>
-                    <Card.Text
-                      style={{
-                        paddingTop: "10px",
-                        fontSize: "15px",
-                            color: "#6460F2",
-                            marginRight: "10px",
-                      }}
-                    >
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#6460F2",
-                            marginRight: "10px",
-                          }}
+                    <Card.Text style={{paddingTop: "10px"}}>
+                      <b style={style.hbtext}>
+                        User:
+                      </b>{" "}
+                      <b
+                        style={{
+                          ...style.hbtext,
+                          color: "#817EB7",
+                        }}
+                      >
+                        {classInfo && classInfo.user_name}
+                      </b>
+                    </Card.Text>
+                    <Card.Text>
+                      <b style={style.hbtext}>
+                        UserID:
+                      </b>{" "}
+                      <b>
+                        <Link
+                          to={`/users/${classInfo && classInfo.user_id}`}
+                          style={{ color: "#817EB7" }}
                         >
-                          User:
-                        </b>{" "}
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#817EB7",
-                            fontWeight: 400,
-                          }}
-                        >
-                          {classData && classData.user_name}
-                        </b><br></br><br></br>
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#6460F2",
-                            marginRight: "10px",
-                          }}
-                        >
-                          UserID:
-                        </b>{" "}
-                        <b>
-                          <Link
-                            to={`/users/${2243}`}
-                            style={{ color: "#817EB7" }}
-                          >
-                            {classData && classData.user_id}
-                          </Link>
-                        </b>
+                          {classInfo && classInfo.user_id}
+                        </Link>
+                      </b>
                     </Card.Text>
                   </Card.Body>
-                </Col>
-              </Row>
+              </div>
             </Card>
           </Col>
-          <Col md={{ span: 6 }}>
-            <Card
-              style={{
-                width: "100%",
-                border: "none",
-                background: "#FFFFFF",
-                /* shadow */
-
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                borderRadius: "10px",
-              }}
-            >
-              <Row className="no-gutters">
-                <Col md={4} lg={4}>
+          <Col md={6}>
+            <Card style={style.hrow}>
+              <div className="d-flex">
                   <Card.Img
                     variant="top"
-                    src={classData && classData.teacher_profile_pic ? imageBaseUrl+classData.teacher_profile_pic : "/profile.png"}
-                    style={{
-                      borderRadius: "10px",
-                      width: "91px",
-                      margin: "15px 20px 10px 30px",
-                    }}
+                    src={classInfo && classInfo.teacher_profile_pic ? imageBaseUrl+classInfo.teacher_profile_pic : "/profile.png"}
+                    style={style.himg}
                   />
-                </Col>
-                <Col>
                   <Card.Body>
-                    <Card.Text
-                      style={{
-                        paddingTop: "10px",
-                      }}
-                    >
-                      <p>
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#6460F2",
-                            marginRight: "10px",
-                          }}
+                    <Card.Text style={{paddingTop:"10px"}}>
+                      <b style={style.hbtext}
                         >
                           Instructor:
                         </b>{" "}
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#817EB7",
-                            fontWeight: 400,
-                          }}
-                        >
-                          {classData && classData.teacher_name}
+                        <b style={{ ...style.hbtext, color: "#817EB7"}}>
+                          {classInfo && classInfo.teacher_name}
                         </b>
-                      </p>
-                      <p>
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#6460F2",
-                            marginRight: "10px",
-                          }}
-                        >
+                      </Card.Text>
+                      <Card.Text>
+                        <b style={style.hbtext}>
                           Instructor ID:
                         </b>{" "}
-                        <b
-                          style={{
-                            fontSize: "15px",
-                            color: "#817EB7",
-                            // fontWeight: 400,
-                          }}
-                        >
+                        <b style={{ ...style.hbtext, color: "#817EB7"}}>
                           <Link
-                            to={`/instuctors/${classData && classData.teacher_id}`}
+                            to={`/instuctors/${classInfo && classInfo.teacher_id}`}
                             style={{ color: "#817EB7" }}
                           >
-                            {classData && classData.teacher_id}
+                            {classInfo && classInfo.teacher_id}
                           </Link>
                         </b>
-                      </p>
                     </Card.Text>
                   </Card.Body>
-                </Col>
-              </Row>
+                </div>
             </Card>
           </Col>
         </Row>
-        <Row
-          style={{
-            marginTop: "20px",
-            marginBottom: "7px",
-          }}
-        >
-          <div
-            style={{
-              lineHeight: "56px",
-              height: "56px",
-              boxSizing: "border-box",
-              background: "#6460F2",
-              border: "none",
-              boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
-              borderRadius: "10px 0px 0px 10px",
-              marginLeft: "15px",
-              width: "82%",
-            }}
-          >
-            <p
-              style={{
-                lineHeight: 1.5,
-                display: "inline-block",
-                background: "#6460F2",
-                color: "white",
-                fontSize: "17px",
-                marginLeft: "8px",
-              }}
-            >
+        <Row style={{marginBottom: "7px"}}>
+          <div style = {{...style.row, marginTop: "16px"}}>
+            <p style={style.p}>
               Class Details
             </p>
           </div>
           <div
             className="classChat"
             style={{
+              marginTop: "16px",
               lineHeight: "56px",
               height: "56px",
               boxSizing: "border-box",
@@ -384,7 +209,7 @@ const CancelledClass: React.FC = () => {
               borderRadius: "0px 10px 10px 0px",
               width: "15%",
             }}
-            onClick={() => handleShowModal()}
+            onClick={() => handleChatModal()}
           >
             <div
               style={{
@@ -408,900 +233,197 @@ const CancelledClass: React.FC = () => {
                 textDecorationLine: "underline",
                 fontSize: "16px",
                 marginLeft: "8px",
-              }}
-            >
+              }}>
               Chat
             </div>
           </div>
         </Row>
         <Row>
           <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
+            <div style={style.rowcol} className="classes">
+              <b style={style.bf}>
                 Class:
               </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.class_type}
+              <b style={style.bs}>
+                {classInfo.class_type}
               </b>
             </div>
           </Col>
           <Col>
             <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
+              style={style.rowcol}
+              className="classes"
             >
               <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Status:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && getStatus(classData.status)}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Subcategory :
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.sub_type}
-              </b>
-            </div>
-          </Col>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Cancelled by:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.cancelled_by}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Date:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && DateFuncN(classData.class_date)}
-              </b>
-            </div>
-          </Col>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Cancellation time
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.cancellation_time}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Time:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.class_time}
-              </b>
-            </div>
-          </Col>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Payment processed by Teache:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.processed_system === true ? "Yes" : "No"}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Duration:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.duration} min
-              </b>
-            </div>
-          </Col>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Payment processed to instructor:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.processed_instructor === true ? "Yes" : "No"}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Number of Participants:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.students}
-              </b>
-            </div>
-          </Col>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Cancellation policy:
-              </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.cancellation_policy}
-              </b>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
-            >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
+                style={style.bf}
               >
                 Cost:
               </b>{" "}
               <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
+                style={style.bs}
               >
-                ${classData && classData.cost}
+                ${classInfo.cost}
+              </b>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Subcategory :
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.sub_type}
               </b>
             </div>
           </Col>
           <Col>
             <div
-              style={{
-                paddingLeft: "16px",
-                lineHeight: "56px",
-                height: "56px",
-                boxSizing: "border-box",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                margin: "5px",
-                boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-                background: "white",
-              }}
+              style={style.rowcol}
+              className="classes"
             >
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Cancellation Reason:
+              <b style={style.bf}>
+                Status:
               </b>{" "}
-              <b
-                style={{
-                  lineHeight: 1.5,
-                  display: "inline-block",
-                  fontSize: "14.5px",
-                  marginRight: "10px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                }}
-              >
-                {classData && classData.cancellation_reason}
+              <b style={style.bs}>
+                {getStatus(classInfo.status)}
+              </b>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Date:
+              </b>{" "}
+              <b style={style.bs} >
+                {classInfo.class_date}
+              </b>
+            </div>
+          </Col>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Payment processed by Teache:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.processed_system && classInfo.processed_system === true ? "Yes" : "No"}
+              </b>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Time:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.class_time}
+              </b>
+            </div>
+          </Col>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                payment processed to instructor:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.processed_instructor && classInfo.processed_instructor === true ? "Yes" : "No"}
+              </b>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Duration:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.duration} mins
+              </b>
+            </div>
+          </Col>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Class issue:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.processed_instructor && classInfo.processed_instructor === true ? "Yes" : "No"}
+              </b>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Number of Participants:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.students}
+              </b>
+            </div>
+          </Col>
+          <Col>
+            <div
+              style={style.rowcol}
+              className="classes"
+            >
+              <b style={style.bf}>
+                Cancellation policy:
+              </b>{" "}
+              <b style={style.bs}>
+                {classInfo.cancellation_policy ? classInfo.cancellation_policy : "No" }
               </b>
             </div>
           </Col>
         </Row>
       </Col>
       {/* ==================================================================================================================================================================================================== */}
-      <Col md={{ span: 4 }}>
-      { paymentStatus === 1 && 
-        <div
-          style={{
-            width: "350px",
-            height: "187px",
-            background: "#DDE9FF",
-            borderRadius: "10px",
-            marginTop: "25px",
-          }}
-        >
-          <div
-            className="text-center"
-            style={{
-              width: "350px",
-              height: "60px",
-              background: "#6460F2",
-              color: "white",
-              paddingTop: "20px",
-              fontSize: "20px",
-              boxShadow: "19px 10px 53px 7px rgba(27, 30, 123, 0.06)",
-              borderRadius: "10px 10px 0px 0px",
-            }}
-          >
-            <b>Refunded amount</b>
-          </div>
-          <div
-            style={{
-              marginTop: "25px",
-              marginLeft: "16%",
-              fontSize: "18px",
-            }}
-          >
-            <p>
-              <b
-                style={{
-                  fontSize: "15.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                  fontWeight: 600,
-                }}
-              >
-                Refund to user:
-              </b>{" "}
-              <b
-                style={{
-                  fontSize: "15.5px",
-                  color: "#817EB7",
-                  marginLeft: "15px",
-                  fontWeight: 500,
-                }}
-              >
-                ${classData.refund_amount}
-              </b>
-            </p>
-            <p>
-              <b
-                style={{
-                  fontSize: "14.5px",
-                  color: "#6460F2",
-                  marginRight: "10px",
-                }}
-              >
-                Released to instructor:
-              </b>{" "}
-              <b
-                style={{
-                  fontSize: "14.5px",
-                  color: "#817EB7",
-                  fontWeight: 400,
-                  marginLeft: "15px",
-                }}
-              >
-                ${classData.cost}
-              </b>
-            </p>
-          </div>
-        </div> }
-      { paymentStatus === 2 && 
-        <div>
-          <div
-          style={{
-            width: "360px",
-            // height: "187px",
-            background: "#DDE9FF",
-            borderRadius: "15px",
-            marginTop: "25px",
-            paddingBottom: "25px",
-            textAlign: "center",
-          }}
-          >
-            <p
-              style={{
-                fontFamily: "Poppins",
-                fontStyle: "normal",
-                fontWeight: 600,
-                fontSize: "19px",
-                lineHeight: "160%",
-                paddingTop: "13%",
-                textAlign: "center",
-                color: "#6460F2",
-                marginBottom: "10px",
-              }}
-            >
-              Teache Received : {totalCost}
-            </p>
-            
-              <Button
-                style={{
-                  marginTop: "15px",
-                  background: "#6460F2",
-                  borderRadius: "8px",
-                  border: "none",
-                  fontWeight: 600,
-                  height: "40px",
-                  fontSize: "16px",
-                }}
-                onClick = {handleHoldPayment}
-              >
-                Hold Payment
-              </Button>
-          </div>
-          <div
-          style={{
-            width: "360px",
-            color: "#6460F2",
-            marginTop: "25px",
-            paddingTop: "30px",
-            paddingLeft: "30px",
-            paddingRight: "30px",
-            paddingBottom: "20px",
-            background: "#DDE9FF",
-            borderRadius:'10px'
-          }}
-          >
-            <Row>
-              <Button
-              onClick={handleRefundUser}
-              style={{
-                backgroundColor: "#6460F2",
-                color: "white",
-                border: "none",
-                fontWeight: 600,
-                fontSize: "16px",
-                lineHeight: "160%",
-                borderRadius: "8px",
-                height: "40px",
-                marginBottom: "16px"
-              }}
-              >Refund to user</Button>
-            </Row>
-            <Row>
-            <Button
-              onClick={handleReleaseInstructor}
-              style={{
-                backgroundColor: "white",
-                color: "#6460F2",
-                border: "none",
-                fontWeight: 600,
-                fontSize: "16px",
-                lineHeight: "160%",
-                borderRadius: "8px",
-                height: "40px",
-                marginBottom: "16px"
-              }}
-              >Release to Instructor</Button>
-            </Row>
-          </div>
-        </div>
-      }
-      { paymentStatus === 4 && 
-        <div>
-          <div
-            style={{
-              width: "360px",
-              // height: "187px",
-              background: "#DDE9FF",
-              borderRadius: "15px",
-              marginTop: "25px",
-              paddingBottom: "15px",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "Poppins",
-                fontStyle: "normal",
-                fontWeight: 600,
-                fontSize: "24px",
-                lineHeight: "160%",
-                paddingTop: "25px",
-                textAlign: "center",
-                color: "#6460F2",
-              }}
-            >
-              Hold Payment
-            </p>
-            <p
-              style={{
-                fontFamily: "Poppins",
-                fontStyle: "normal",
-                fontWeight: 600,
-                fontSize: "19px",
-                lineHeight: "160%",
-                paddingTop: "16px",
-                textAlign: "center",
-                color: "#6460F2",
-              }}
-            >
-              Cost: {totalCost}
-            </p>
-          </div>
-          <div
-          style={{
-            width: "360px",
-            color: "#6460F2",
-            marginTop: "25px",
-            paddingTop: "30px",
-            paddingLeft: "30px",
-            paddingRight: "30px",
-            paddingBottom: "20px",
-            background: "#DDE9FF",
-            borderRadius:'10px'
-          }}
-          >
-            <Row>
-              <Button
-              onClick={handleRefundUser}
-              style={{
-                backgroundColor: "#6460F2",
-                color: "white",
-                border: "none",
-                fontWeight: 600,
-                fontSize: "16px",
-                lineHeight: "160%",
-                borderRadius: "8px",
-                height: "40px",
-                marginBottom: "16px"
-              }}
-              >Refund to user</Button>
-            </Row>
-            <Row>
-            <Button
-              onClick={handleReleaseInstructor}
-              style={{
-                backgroundColor: "white",
-                color: "#6460F2",
-                border: "none",
-                fontWeight: 600,
-                fontSize: "16px",
-                lineHeight: "160%",
-                borderRadius: "8px",
-                height: "40px",
-                marginBottom: "16px"
-              }}
-              >Release to Instructor</Button>
-            </Row>
-          </div>
-        </div>
-      }
-      { paymentStatus === 3 ?
-        <div
-        style={{
-          width: "360px",
-          // height: "187px",
-          background: "#DDE9FF",
-          borderRadius: "15px",
-          marginTop: "25px",
-          paddingBottom: "15px",
-          textAlign: "center",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "Poppins",
-            fontStyle: "normal",
-            fontWeight: 600,
-            fontSize: "24px",
-            lineHeight: "160%",
-            paddingTop: "25px",
-            textAlign: "center",
-            color: "#6460F2",
-          }}
-        >
-          {processStatus===1 && "Refunded to user"}
-          {processStatus===2 && "Release to Instructor"}
-        </p>
-        <p
-          style={{
-            fontFamily: "Poppins",
-            fontStyle: "normal",
-            fontWeight: 600,
-            fontSize: "19px",
-            lineHeight: "160%",
-            paddingTop: "16px",
-            textAlign: "center",
-            color: "#6460F2",
-          }}
-        >
-          Cost: {totalCost}
-        </p>
-      </div> : ""
-      }
+      <Col md={4} style={{marginTop: "16px"}}>
+        <ClassPayment
+          classId = {classInfo && classInfo.id}
+          cost = {classInfo && classInfo.cost}
+          status={ classInfo && classInfo.processed_instructor ? 1 : classInfo.processed_system ? 2 : 3}
+          />
       </Col>
       {showModal && (
         <Chat 
           showModal={showModal} 
-          userId = {classData && classData.user_id}
-          teacherId = {classData && classData.teacher_user_id}
-          userName = {classData && classData.user_name}
-          teacehrName = {classData && classData.teacher_name}
-          classId = {classData && classData.id}
+          userId = {classInfo && classInfo.user_id}
+          teacherId = {classInfo && classInfo.teacher_user_id}
+          userName = {classInfo && classInfo.user_name}
+          teacehrName = {classInfo && classInfo.teacher_name}
+          classId = {classInfo && classInfo.id}
           handleCallback={handleParentCallback} />
       )}
     </Row>

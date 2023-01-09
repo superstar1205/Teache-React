@@ -12,6 +12,7 @@ import { getStatus, getAbbr } from "../../utils";
 import Chat from "../Chat";
 import ViewTeacherDetail from "./ViewTeacherDetail";
 import BackdropLoader from "../../common/components/BackdropLoader";
+import { AiOutlineCaretDown } from "react-icons/ai";
 
 var options: any = { year: "numeric", month: "numeric", day: "numeric" };
 
@@ -134,7 +135,6 @@ const Users: React.FC = (props: object) => {
       if (res.status === 200){
         if (res.data) {
           if (res.data.data){
-            console.log(res.data.data);
             if (res.data.data.user){
               setTeacherData(res.data.data.user);
               setTeacherClassType(res.data.data.class.title);
@@ -178,7 +178,6 @@ const Users: React.FC = (props: object) => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
-          console.log(res.data.data);
         } else {
           setClassesData([]);
           setTotalCount(0);
@@ -189,6 +188,48 @@ const Users: React.FC = (props: object) => {
       }
     });
   }, [id, itemNumber, page]);
+
+  const useSortableData = (items, config = null) => {
+    const [sortConfig, setSortConfig] = React.useState(config);
+
+    const sortedItems = React.useMemo(() => {
+      let sortableItems = [...items];
+      if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+      return sortableItems;
+    }, [items, sortConfig]);
+  
+    const requestSort = (key) => {
+      let direction = 'ascending';
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'ascending'
+      ) {
+        direction = 'descending';
+      }
+      setSortConfig({ key, direction });
+    };
+  
+    return { items: sortedItems, requestSort, sortConfig };
+  };
+
+  const { items, requestSort, sortConfig } = useSortableData(classesData);
+  const getClassNamesFor = (name) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
+  };
 
   const handlePrevious = (page:any) => {
     if(page <= 1){
@@ -654,12 +695,15 @@ const Users: React.FC = (props: object) => {
                       <th
                         scope="col"
                         style={{
-                          paddingLeft: 15 + "px",
                           verticalAlign: "middle",
                           border: "none",
+                          textAlign: "center"
                         }}
                       >
                         Class ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('id')}
+                        className={getClassNamesFor('id')}/>
                       </th>
                       <th
                         scope="col"
@@ -670,6 +714,9 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         User
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('name')}
+                        className={getClassNamesFor('name')}/>
                       </th>
                       <th
                         scope="col"
@@ -680,12 +727,30 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         User ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('user_id')}
+                        className={getClassNamesFor('user_id')}/>
+                      </th>
+                      <th
+                      scope="col"
+                      style={{
+                        verticalAlign: "middle",
+                        textAlign: "center",
+                        border: "none",
+                      }}>
+                        Booking ID
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('booking_id')}
+                        className={getClassNamesFor('booking_id')}/>
                       </th>
                       <th
                         scope="col"
                         style={{ verticalAlign: "middle", border: "none" }}
                       >
                         Class Date
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('class_date')}
+                        className={getClassNamesFor('class_date')}/>
                       </th>
                       <th
                         scope="col"
@@ -696,6 +761,9 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         Status
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('status')}
+                        className={getClassNamesFor('status')}/>
                       </th>
                       <th
                         scope="col"
@@ -706,6 +774,9 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         Cost
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('cost')}
+                        className={getClassNamesFor('cost')}/>
                       </th>
                       <th
                         scope="col"
@@ -716,6 +787,9 @@ const Users: React.FC = (props: object) => {
                         }}
                       >
                         Payment
+                        <AiOutlineCaretDown
+                        onClick={() => requestSort('payment')}
+                        className={getClassNamesFor('payment')}/>
                       </th>
                       <th
                         scope="col"
@@ -733,22 +807,32 @@ const Users: React.FC = (props: object) => {
                       <BackdropLoader />
                       </td>
                     </tr>}
-                    {classesData &&
-                      classesData.length > 0 &&
-                      classesData.map((item: any, index) => (
+                    {items &&
+                      items.length > 0 &&
+                      items.map((item: any, index) => (
                         <tr key={index}>
                           <td
                             style={{
-                              paddingLeft: 15 + "px",
                               color: "#817EB7",
+                              textAlign: "center"
                             }}
                           >
-                            <span>{item.id}</span>
+                            <Link
+                              to={{
+                                pathname: `/cancelledclasses/${item.id}`,
+                                state: {
+                                  userinfo: item,
+                                },
+                              }}
+                              style={{ color: "#817EB7" }}
+                            >
+                              <span>{item.id}</span>
+                            </Link>
                           </td>
                           <td style={{ textAlign: "center" }}>
                             <Link
                               to={{
-                                pathname: `/cancelledclasses/${item.id}`,
+                                pathname: `/booking/${item.booking_id}`,
                                 state: {
                                   userinfo: item,
                                 },
@@ -760,6 +844,19 @@ const Users: React.FC = (props: object) => {
                           </td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
                             <span>{item.user_id}</span>
+                          </td>
+                          <td style={{ color: "#817EB7", textAlign: "center" }}>
+                            <Link
+                              to={{
+                                pathname: `/booking/${item.booking_id}`,
+                                state: {
+                                  userinfo: item,
+                                },
+                              }}
+                              style={{ color: "#817EB7" }}
+                            >
+                              {item.booking_id}
+                            </Link>
                           </td>
                           <td style={{ color: "#817EB7" }}>{DateFuncN(item.class_date)}</td>
                           <td style={{ color: "#817EB7", textAlign: "center" }}>
@@ -850,7 +947,6 @@ const Users: React.FC = (props: object) => {
                 <div
                   style={{
                     marginRight: "1.5%",
-                    // marginLeft: "20px",
                     paddingTop: "8px",
                   }}
                 >
