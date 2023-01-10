@@ -1,10 +1,10 @@
-import React, { Fragment, Dispatch, useState, useEffect, useCallback, Children } from "react";
+import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { Row, Col, Card, Image, Accordion } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { getStatus } from "../../utils";
 import Chat from "../Chat";
 import ClassPayment from "./ClassPayment";
@@ -97,7 +97,7 @@ const BookingClasses: React.FC = () => {
   };
 
   const handleParentCallback = (childData: any) => {
-    toast.error(childData);
+    setShowChatModal(childData);
   };
 
   const handleChatModal = (id: any, userid: any, teacherid: any, username: string, teachername: string) => {
@@ -108,10 +108,6 @@ const BookingClasses: React.FC = () => {
     setSelectedUserName(username);
     setSelectedTeacherName(teachername);
   };
-
-  // const handlePaymentParentCallback = ((Children:any) => {
-  //   toast.error(Children);
-  // });
 
   useEffect(() => {
     BaseUrl.get(`/booking-classes/${id}`, axiosConfig).then((res) => {
@@ -216,14 +212,14 @@ const BookingClasses: React.FC = () => {
     >
       {classData && classData.length>0 && classData.map((classItem: any, key: any) => {
         let itemstatus;
-        if(classItem.processed_instructor === true){
-          itemstatus = 1;
-        } else{
-          if(classItem.processed_system === true){
+        if(classItem.payment === "Hold Payment"){
+            itemstatus = 1;
+        } else if(classItem.payment === "Pending"){
             itemstatus = 2;
-          }else{
+        } else if(classItem.payment === "Cancelled"){
             itemstatus = 3;
-          }
+        } else if(classItem.payment === "Processed"){
+            itemstatus = 4;
         }
         return(
         <Accordion.Item eventKey={''+key} key={key}>
@@ -454,6 +450,8 @@ const BookingClasses: React.FC = () => {
                 <ClassPayment
                   classId = {classItem && classItem.id}
                   cost = {classItem && classItem.cost}
+                  refund = {classItem && classItem.refund_amount}
+                  fee = {classItem && classItem.instructor_fee}
                   status = {itemstatus}
                   // handleCallback = {handlePaymentParentCallback}
                 ></ClassPayment>

@@ -1,4 +1,4 @@
-import React, { Fragment, Dispatch, useState, useEffect, useRef } from "react";
+import React, { Fragment, Dispatch, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import BaseUrl from "../../BaseUrl/BaseUrl";
@@ -413,7 +413,9 @@ const CancelledClass: React.FC = () => {
         <ClassPayment
           classId = {classInfo && classInfo.id}
           cost = {classInfo && classInfo.cost}
-          status={ classInfo && classInfo.processed_instructor ? 1 : classInfo.processed_system ? 2 : 3}
+          refund = {classInfo && classInfo.refund_amount}
+          fee={classInfo && classInfo.instructor_fee}
+          status={ classInfo && classInfo.payment ==="Hold Payment" ? 1 : classInfo.payment ==="Pending" ? 2 : classInfo.payment === "Cancelled" ? 3 : classInfo.payment === "Processed" && 4}
           />
       </Col>
       {showModal && (
