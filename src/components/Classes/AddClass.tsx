@@ -11,6 +11,7 @@ export default function AddClass(props: any) {
 
   const picRef = useRef<HTMLInputElement>(null);
   const [picData, setPicData] = useState(null);
+  const [showPic, setShowPic] = useState(null);
   const [iconData, setIconData] = useState(null);
   const icons = [
     "academics", "aid", "air", "american football", "art", "ball", "beans", "bike", "board game", "camera", "cards", "clothes", "coin", "communication", "computer", "design", "disc ", "dog", "drama", "drink", "drive", "fast", "flower", "food", "game console", "gymnastics", "hand making", "horse", "house", "meditation", "mountain", "music", "pen", "phone", "plane", "precission ", "raquet", "rope", "science", "self defence", "shoes", "skating", "smell", "snow", "star", "strenght", "styling", "tools", "water", "wheelchair sports"
@@ -24,9 +25,11 @@ export default function AddClass(props: any) {
 
   const handlePicChange = (e: any) => {
     const file = e.target.files[0];
+    console.log(e.target.files[0]);
     if (file) {
+      setPicData(file);
       reader.addEventListener("load", () => {
-        setPicData(reader.result);
+        setShowPic(reader.result);
       });
       reader.readAsDataURL(file);
     }
@@ -55,10 +58,11 @@ export default function AddClass(props: any) {
       const axiosConfig: any = {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("teache_token")}`,
+          "Content-Type": "multipart/form-data",
         },
       };
       const formData = new FormData();
-      formData.append('class_picture', picData);
+      formData.append('file', picData);
       BaseUrl.post(`/upload-file`, formData, axiosConfig).then((res) => {
         if(res.status === 200){
           toast.success("File upload successfully!");
@@ -215,7 +219,7 @@ export default function AddClass(props: any) {
                 </div>
                 <div>
                   <img
-                    src={picData ? picData :"/upload_img.png"}
+                    src={showPic ? showPic :"/upload_img.png"}
                     style={{
                       width: "96px",
                       height: "96px",
@@ -225,7 +229,7 @@ export default function AddClass(props: any) {
                   />
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <input
+                  <Form.Control
                     ref={picRef}
                     className="d-none"
                     onChange={handlePicChange}

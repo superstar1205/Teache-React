@@ -10,7 +10,8 @@ export default function EditClass(props: any) {
   const [show, setShow] = useState(props.showModal);
   const [classType, setClassType] = useState(props.editTitle);
   const picRef = useRef<HTMLInputElement>(null);
-  const [picData, setPicData] = useState(props.editPic);
+  const [picData, setPicData] = useState(null);
+  const [showPic, setShowPic] = useState(props.editPic);
   const [iconData, setIconData] = useState(props.editIcon);
   const icons = [
     "academics", "aid", "air", "american football", "art", "ball", "beans", "bike", "board game", "camera", "cards", "clothes", "coin", "communication", "computer", "design", "disc ", "dog", "drama", "drink", "drive", "fast", "flower", "food", "game console", "gymnastics", "hand making", "horse", "house", "meditation", "mountain", "music", "pen", "phone", "plane", "precission ", "raquet", "rope", "science", "self defence", "shoes", "skating", "smell", "snow", "star", "strenght", "styling", "tools", "water", "wheelchair sports"
@@ -25,8 +26,9 @@ export default function EditClass(props: any) {
   const handlePicChange = (e: any) => {
     const file = e.target.files[0];
     if (file) {
+      setPicData(file);
       reader.addEventListener("load", () => {
-        setPicData(reader.result);
+        setShowPic(reader.result);
       });
       reader.readAsDataURL(file);
     }
@@ -70,6 +72,7 @@ export default function EditClass(props: any) {
           BaseUrl.post(`/update-class-type/${id}`, cdata, axiosConfig).then((res) => {
             if(res.status === 200){
               toast.success("Class added successfully!");
+              props.handleCallback(false);
             }
           });
         } else{
@@ -215,7 +218,7 @@ export default function EditClass(props: any) {
                 </div>
                 <div>
                   <img
-                    src={picData ? picData :"/upload_img.png"}
+                    src={showPic ? showPic :"/upload_img.png"}
                     style={{
                       width: "96px",
                       height: "96px",
@@ -270,7 +273,7 @@ export default function EditClass(props: any) {
               height: "45px",
             }}
           >
-            Edit Class
+            Save Class
           </Button>
         </Modal.Footer>
       </Modal>
