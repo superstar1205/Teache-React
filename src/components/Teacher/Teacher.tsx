@@ -717,7 +717,7 @@ const Teacher: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      )):<tr><td colSpan={11} className="text-center">No Instructor</td></tr>}
+                      )) : <tr><td colSpan={11} className="text-center">No Instructor</td></tr>}
                   </tbody>
                 </table>
               </div>

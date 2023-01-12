@@ -470,7 +470,7 @@ const Class: React.FC = () => {
                           <td style={{ textAlign: "center" }}>
                             <Link
                               to={{
-                                pathname: `/classes/${item.id}`,
+                                pathname: `/class/${item.id}/${item.title}`
                               }}
                               style={{ color: "#817EB7" }}
                             >
@@ -638,7 +638,7 @@ const Class: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      )):<tr><td colSpan={7} className="text-center">No Class</td></tr>}
+                      )): <tr><td colSpan={7} className="text-center">No Class</td></tr>}
                   </tbody>
                 </table>
               </div>
