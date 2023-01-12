@@ -549,7 +549,7 @@ const Issues: React.FC = () => {
                             </Link>
                           </td>
                         </tr>
-                      )) : <tr><td colSpan={9} className="text-center">No Issue</td></tr> }
+                      )) : <tr><td colSpan={9} className="text-center">No Data</td></tr> }
                   </tbody>
                 </table>
               </div>

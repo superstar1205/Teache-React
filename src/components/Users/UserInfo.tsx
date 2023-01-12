@@ -722,7 +722,7 @@ const Users: React.FC = (props: object) => {
                   <tbody style={{ color: "#6460F2" }}>
                   {loader && 
                     <tr>
-                      <td colSpan={9}>
+                      <td colSpan={10}>
                       <BackdropLoader />
                       </td>
                     </tr>}

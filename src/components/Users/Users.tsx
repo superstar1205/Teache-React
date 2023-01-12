@@ -483,7 +483,6 @@ const Users: React.FC = () => {
                       items.length > 0 &&
                       items.map((item: any, index) => (
                         <tr key={index}>
-                          {/* <td>{index+1}</td> */}
                           <td
                             style={{
                               paddingLeft: 15 + "px",
@@ -697,7 +696,7 @@ const Users: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      )):<tr><td colSpan={9} className="text-center">No User</td></tr>}
+                      )):<tr><td colSpan={10} className="text-center">No User</td></tr>}
                   </tbody>
                 </table>
               </div>
