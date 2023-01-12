@@ -479,7 +479,7 @@ const Users: React.FC = () => {
                       <BackdropLoader />
                       </td>
                     </tr>}
-                    {items &&
+                    {items ?
                       items.length > 0 &&
                       items.map((item: any, index) => (
                         <tr key={index}>
@@ -697,7 +697,7 @@ const Users: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      )):<tr><td colSpan={9} className="text-center">No User</td></tr>}
                   </tbody>
                 </table>
               </div>

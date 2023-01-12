@@ -510,7 +510,7 @@ const Teacher: React.FC = () => {
                       <BackdropLoader />
                       </td>
                     </tr>}
-                    { items &&
+                    { items ?
                       items.length > 0 &&
                       items.map((value: any, index: number) => (
                         <tr key={index}>
@@ -717,7 +717,7 @@ const Teacher: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      )):<tr><td colSpan={11} className="text-center">No Instructor</td></tr>}
                   </tbody>
                 </table>
               </div>
