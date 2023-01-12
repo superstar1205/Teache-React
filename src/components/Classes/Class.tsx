@@ -447,7 +447,7 @@ const Class: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {items &&
+                    {items ?
                       items.length > 0 &&
                       items.map((item: any, index) => (
                         <tr key={index}>
@@ -638,7 +638,7 @@ const Class: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      )):<tr><td colSpan={7} className="text-center">No Class</td></tr>}
                   </tbody>
                 </table>
               </div>
