@@ -65,7 +65,7 @@ export function getTeacherBadge(status: string) {
     case "rejected":
       bg = "#DDE9FF";
       fontColor = "#C4C2E9";
-      _status = "Rejected";
+      _status = "Blocked";
       break;
     default:
       break;

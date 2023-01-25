@@ -134,6 +134,7 @@ const Users: React.FC = () => {
           if(res.data.data){
             setShowerCount(res.data.data.length);
           }
+          console.log(res.data);
         } else {
           setLoader(false);
           setUserData([]);
@@ -145,7 +146,7 @@ const Users: React.FC = () => {
         setTotalCount(0);
       }
     });
-  }, [showModal, searchText, selectedOption, itemNumber]);
+  }, [smShow, showModal, searchText, selectedOption, itemNumber]);
 
   const handleClear = () => {
     setSearchText("");
