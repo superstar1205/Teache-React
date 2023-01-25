@@ -162,6 +162,7 @@ const Teacher: React.FC = () => {
           setPageNumber(res.data.page);
           setPagesNumber(res.data.pages);
           setShowerCount(res.data.data.length);
+          console.log(res.data);
         } else {
           setTotalCount(0);
           setTeacherData([]);
@@ -175,7 +176,7 @@ const Teacher: React.FC = () => {
           setLoader(false);
         }
       });
-  }, [showModal, searchText, itemNumber, page]);
+  }, [smShow, showModal, searchText, itemNumber, page]);
 
   const useSortableData = (items, config = null) => {
     const [sortConfig, setSortConfig] = React.useState(config);

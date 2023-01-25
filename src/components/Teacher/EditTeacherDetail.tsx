@@ -62,7 +62,7 @@ export default function EditUserDetail(props: any) {
         >
           <Modal.Title
             style={{
-              marginLeft: "25%",
+              marginLeft: "15%",
               fontWeight: 600,
               fontSize: "28px",
               lineHeight: "160%",
@@ -70,7 +70,7 @@ export default function EditUserDetail(props: any) {
               textTransform: "capitalize",
             }}
           >
-            Edit User Status
+            Edit Instructor Status
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: "30px", background: "#F9FBFF" }}>
@@ -85,7 +85,7 @@ export default function EditUserDetail(props: any) {
                 color: "#5D59B4",
               }}
             >
-              User Current Status :
+              Instructor Current Status:
             </span>
             {getTeacherBadge(props.userStatus)}
           </p>
@@ -111,8 +111,7 @@ export default function EditUserDetail(props: any) {
               Choose New Status
             </option>
             <option value="accepted">Accepted</option>
-            <option value="awaiting">Awaiting</option>
-            <option value="rejected">Rejected</option>
+            <option value="rejected">Blocked</option>
           </Form.Select>
           <div
             style={{

@@ -145,14 +145,6 @@ const Login: React.FC = () => {
                             </clipPath>
                           </defs>
                         </svg>
-
-                        {/* <img
-                          // src="./Teache.png"
-                          src="/big_logo.png"
-                          alt="logo"
-                          width="276px"
-                          height="50px"
-                        /> */}
                         <h4
                           style={{
                             color: "#554DF1",
