@@ -224,6 +224,7 @@ const Teacher: React.FC = () => {
 
   return (
     <Fragment>
+      {loader && <BackdropLoader />}
       <ToastContainer />
       <div className="row">
         <div className="col-xl-12 col-lg-12" style={{ padding: "0px" }}>
@@ -505,12 +506,6 @@ const Teacher: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody style={{ color: "#6460F2" }}>
-                    {loader && 
-                    <tr>
-                      <td colSpan={11}>
-                      <BackdropLoader />
-                      </td>
-                    </tr>}
                     { items ?
                       items.length > 0 &&
                       items.map((value: any, index: number) => (
